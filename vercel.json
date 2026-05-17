@@ -1,7 +1,16 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "framework": "vite",
+  "version": 3,
   "buildCommand": "npm run build",
+  "installCommand": "npm ci",
   "outputDirectory": "dist",
-  "installCommand": "npm ci"
+  "builds": [
+    { "src": "dist/server/server.js", "use": "@vercel/node" },
+    { "src": "dist/client/**", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "^/(assets/.*)$", "dest": "/dist/client/$1" },
+    { "src": "^/(icon-192.png|icon-512.png|manifest.json)$", "dest": "/dist/client/$1" },
+    { "src": "^/(.*)$", "dest": "/dist/server/server.js" }
+  ]
 }
