@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Route as RouteIcon, DollarSign, Fuel, FileBarChart,
   Settings, LogOut, Truck, Home, Wallet, History, Bell, Link2, Building2, ListChecks,
-  ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen, MapPin,
+  ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { logout, type Role } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -16,15 +16,12 @@ const adminGroups = [
     items: [
       { to: "/admin/dashboard",  label: "Dashboard",  icon: LayoutDashboard },
       { to: "/admin/rotas",      label: "Rotas",       icon: RouteIcon },
-      { to: "/admin/heatmap",      label: "Heatmap",      icon: RouteIcon },
-      { to: "/admin/rastreamento", label: "Rastreamento", icon: MapPin },
-      { to: "/admin/motoristas",   label: "Motoristas",   icon: Users },
+      { to: "/admin/motoristas", label: "Motoristas",  icon: Users },
     ],
   },
   {
     label: "Financeiro",
     items: [
-      { to: "/admin/clientes",   label: "Empresas Clientes", icon: Building2 },
       { to: "/admin/pagamentos", label: "Pagamentos",  icon: Wallet },
       { to: "/admin/combustivel",label: "Combustível", icon: Fuel },
       { to: "/admin/metas",      label: "Metas",       icon: FileBarChart },
@@ -64,7 +61,6 @@ const driverGroups = [
   {
     label: "Sistema",
     items: [
-      { to: "/motorista/perfil",       label: "Meu Perfil",         icon: Settings },
       { to: "/motorista/notificacoes", label: "Notificações",       icon: Bell },
       { to: "/motorista/comprovei",    label: "Conectar Comprovei", icon: Link2 },
     ],

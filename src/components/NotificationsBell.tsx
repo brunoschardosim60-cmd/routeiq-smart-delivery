@@ -1,13 +1,12 @@
 import { Bell, AlertTriangle, Fuel, Route as RouteIcon, DollarSign, Info, XCircle } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useNotifications, type RealNotification } from "@/lib/notifications";
-import type { NotifType } from "@/lib/notifications.functions";
+import { notificationsData, type AppNotification, type NotificationType } from "@/lib/mock-data";
 import type { Role } from "@/hooks/use-auth";
-import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 
-const iconFor = (t: NotifType) => {
+const iconFor = (t: NotificationType) => {
   switch (t) {
     case "atraso": return AlertTriangle;
     case "problema": return XCircle;
@@ -18,7 +17,7 @@ const iconFor = (t: NotifType) => {
   }
 };
 
-const colorFor = (t: NotifType) => {
+const colorFor = (t: NotificationType) => {
   switch (t) {
     case "atraso": return "text-warning bg-warning/15";
     case "problema": return "text-destructive bg-destructive/15";
@@ -31,11 +30,18 @@ const colorFor = (t: NotifType) => {
 
 export function NotificationsBell({ role }: { role: Role }) {
   const navigate = useNavigate();
-  const { items, unread, markRead, markAllRead } = useNotifications();
+  const [items, setItems] = useState<AppNotification[]>(
+    notificationsData.filter((n) => n.audience === role),
+  );
+  const unread = useMemo(() => items.filter((n) => !n.read).length, [items]);
 
-  const onClick = (n: RealNotification) => {
-    markRead(n.id);
-    if (n.link) navigate({ to: n.link.to as never, params: n.link.params as never });
+  const markAllRead = () => setItems((arr) => arr.map((n) => ({ ...n, read: true })));
+
+  const onClick = (n: AppNotification) => {
+    setItems((arr) => arr.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
+    if (n.link) {
+      navigate({ to: n.link.to as never, params: n.link.params as never });
+    }
   };
 
   return (
@@ -82,7 +88,7 @@ export function NotificationsBell({ role }: { role: Role }) {
                 <div className="flex-1 min-w-0">
                   <p className={cn("text-sm leading-tight", !n.read && "font-semibold")}>{n.title}</p>
                   <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">{n.desc}</p>
-                  <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{n.timeLabel}</p>
+                  <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">{n.time}</p>
                 </div>
                 {!n.read && <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />}
               </button>

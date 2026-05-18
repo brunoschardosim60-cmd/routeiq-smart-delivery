@@ -4,13 +4,9 @@ import {
   listAssignedRoutes,
   createAssignedRoute,
   deleteAssignedRoute,
-  finishAssignedRoute,
-  updateAssignedRoute,
-  recalcRoutesForClient,
   type RouteDbRow,
 } from "./routes-db.functions";
 import type { Company, RouteRow, RouteStatus } from "./mock-data";
-import { useAuth } from "@/hooks/use-auth";
 
 const QK = ["assigned-routes-db"] as const;
 
@@ -19,15 +15,7 @@ function isoToBR(iso: string): string {
   return `${d}/${m}/${y}`;
 }
 
-/** Mapeia o nome da empresa para o tag legado (DBM/BS). Default DBM. */
-function companyTag(name?: string | null): Company {
-  if (!name) return "DBM";
-  const upper = name.toUpperCase();
-  if (upper.includes("BS")) return "BS";
-  return "DBM";
-}
-
-export function rowToRouteRow(r: RouteDbRow, companyName?: string | null): RouteRow {
+export function rowToRouteRow(r: RouteDbRow): RouteRow {
   return {
     id: r.id,
     code: r.code,
@@ -35,8 +23,7 @@ export function rowToRouteRow(r: RouteDbRow, companyName?: string | null): Route
     dateISO: r.date_iso,
     driverId: r.driver_id,
     driverName: r.driver_name,
-    company: companyTag(companyName),
-    companyName: companyName ?? null,
+    company: "BS" as Company,
     origin: r.origin,
     totalDeliveries: r.total_deliveries,
     done: r.done,
@@ -47,28 +34,18 @@ export function rowToRouteRow(r: RouteDbRow, companyName?: string | null): Route
     status: (r.status as RouteStatus) ?? "em_andamento",
     departure: r.departure ?? "",
     expectedReturn: r.expected_return ?? "",
-    isSecondTrip: r.trip_type === "segunda",
-    driverPay: Number(r.driver_pay ?? 0),
-    tripType: (r.trip_type as RouteRow["tripType"]) ?? "diaria",
-    clientCompanyId: r.client_company_id ?? null,
-    destinationLat: (r as any).destination_lat ?? null,
-    destinationLon: (r as any).destination_lon ?? null,
-    originLat: (r as any).origin_lat ?? null,
-    originLon: (r as any).origin_lon ?? null,
-    comproveiExternalId: r.comprovei_external_id ?? null,
+    isSecondTrip: false,
   };
 }
 
 export function useDbAssignedRoutes() {
-  const { company } = useAuth();
   const q = useQuery({
     queryKey: QK,
     queryFn: () => listAssignedRoutes(),
     staleTime: 15_000,
   });
-  const companyName = company?.name ?? null;
   return {
-    rows: (q.data?.rows ?? []).map((r) => rowToRouteRow(r, companyName)),
+    rows: (q.data?.rows ?? []).map(rowToRouteRow),
     raw: q.data?.rows ?? [],
     isLoading: q.isLoading,
   };
@@ -89,9 +66,6 @@ export interface CreateRouteInput {
   cost?: number;
   revenue?: number;
   notes?: string | null;
-  clientCompanyId?: string | null;
-  tripType?: "diaria" | "segunda" | "avulsa";
-  driverPay?: number;
 }
 
 export function useCreateAssignedRoute() {
@@ -108,50 +82,6 @@ export function useDeleteAssignedRoute() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => fn({ data: { id } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
-  });
-}
-
-export interface FinishRouteInput {
-  id: string;
-  kmEnd?: number | null;
-  notes?: string | null;
-  proofPhotoUrl?: string | null;
-}
-
-export function useFinishAssignedRoute() {
-  const fn = useServerFn(finishAssignedRoute);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (data: FinishRouteInput) => fn({ data }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
-  });
-}
-
-export interface UpdateRouteInput {
-  id: string;
-  revenue?: number;
-  driverPay?: number;
-  cost?: number;
-  km?: number;
-  kmEnd?: number | null;
-  notes?: string | null;
-}
-
-export function useUpdateAssignedRoute() {
-  const fn = useServerFn(updateAssignedRoute);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (data: UpdateRouteInput) => fn({ data }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
-  });
-}
-
-export function useRecalcRoutesForClient() {
-  const fn = useServerFn(recalcRoutesForClient);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (clientCompanyId: string) => fn({ data: { clientCompanyId } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: QK }),
   });
 }

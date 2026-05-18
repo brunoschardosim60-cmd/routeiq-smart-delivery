@@ -9,6 +9,7 @@ import { brl } from "@/lib/format";
 import { Plus, Search, Eye, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useCurrentCompany, filterByCompany, companyLabel } from "@/lib/current-company";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/motoristas")({
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/admin/motoristas")({
 });
 
 function MotoristasPage() {
+  const [scope] = useCurrentCompany();
   const extra = useExtraDrivers();
   const members = useCompanyDrivers();
   const allDrivers = useMemo(() => {
@@ -32,7 +34,7 @@ function MotoristasPage() {
   const [sort, setSort] = useState<"name" | "rate" | "deliveriesToday">("name");
   const [open, setOpen] = useState(false);
 
-  const scoped = allDrivers;
+  const scoped = useMemo(() => filterByCompany(allDrivers, scope), [allDrivers, scope]);
 
   const filtered = useMemo(() => {
     const arr = scoped.filter((d) => {
@@ -48,12 +50,15 @@ function MotoristasPage() {
     return arr;
   }, [scoped, q, status, sort]);
 
+  const bsCount = scoped.filter((d) => d.company === "BS").length;
+  const dbmCount = scoped.filter((d) => d.company === "DBM").length;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Motoristas</h1>
-          <p className="text-xs text-muted-foreground">Equipe da sua empresa</p>
+          <p className="text-xs text-muted-foreground">Empresa: {companyLabel(scope)}</p>
         </div>
         <button
           onClick={() => setOpen(true)}
@@ -64,9 +69,9 @@ function MotoristasPage() {
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard label="Total de motoristas" value={String(scoped.length)} />
-        <MetricCard label="Disponíveis" value={String(scoped.filter((d) => d.status === "disponivel").length)} accent="success" />
+        <MetricCard label="BS Soluções (fixos)" value={String(bsCount)} accent="success" />
+        <MetricCard label="DBM (rotativos)" value={String(dbmCount)} accent="info" />
         <MetricCard label="Em rota agora" value={String(scoped.filter((d) => d.status === "em_rota").length)} accent="warning" />
-        <MetricCard label="Inativos" value={String(scoped.filter((d) => d.status === "inativo").length)} accent="info" />
       </div>
 
       <Card>

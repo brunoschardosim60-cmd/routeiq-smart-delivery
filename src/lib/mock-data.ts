@@ -57,17 +57,6 @@ export interface RouteRow {
   departure: string;
   expectedReturn: string;
   isSecondTrip: boolean;
-  driverPay?: number;
-  tripType?: "diaria" | "segunda" | "avulsa";
-  clientCompanyId?: string | null;
-  clientCompanyName?: string | null;
-  /** Display name of the owning company (from profiles/companies). */
-  companyName?: string | null;
-  destinationLat?: number | null;
-  destinationLon?: number | null;
-  originLat?: number | null;
-  originLon?: number | null;
-  comproveiExternalId?: string | null;
 }
 
 export const routesData: RouteRow[] = [];

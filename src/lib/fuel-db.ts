@@ -28,7 +28,6 @@ export interface FuelUI {
   odometer: number;
   station?: string;
   notes?: string;
-  assignedRouteId?: string | null;
 }
 
 export function rowToFuelUI(r: FuelDbRow): FuelUI {
@@ -46,7 +45,6 @@ export function rowToFuelUI(r: FuelDbRow): FuelUI {
     odometer: Number(r.odometer ?? 0),
     station: r.station ?? undefined,
     notes: r.notes ?? undefined,
-    assignedRouteId: r.assigned_route_id ?? null,
   };
 }
 
@@ -74,7 +72,6 @@ export interface CreateFuelInput {
   odometer?: number | null;
   station?: string | null;
   notes?: string | null;
-  assignedRouteId?: string | null;
 }
 
 export function useCreateFuelEntry() {

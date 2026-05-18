@@ -3,13 +3,10 @@ import { Outlet, useNavigate } from "@tanstack/react-router";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuth, type Role } from "@/hooks/use-auth";
-import { useRoutesRealtime } from "@/hooks/use-routes-realtime";
-import { DriverRouteMode } from "./DriverRouteMode";
 
 export function AppShell({ requireRole }: { requireRole: Role }) {
   const navigate = useNavigate();
   const { loading, isAuthenticated, role } = useAuth();
-  useRoutesRealtime({ notifyOnFinish: requireRole === "admin" });
 
   useEffect(() => {
     if (loading) return;
@@ -42,7 +39,6 @@ export function AppShell({ requireRole }: { requireRole: Role }) {
           <Outlet />
         </main>
       </div>
-      {role === "motorista" && <DriverRouteMode />}
     </div>
   );
 }

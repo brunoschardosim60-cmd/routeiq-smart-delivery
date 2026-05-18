@@ -1,54 +1,55 @@
-# Plano: finalizar pendências
+## Plano — sincronização real + relatórios CSV
 
-## 1. Relatório por Empresa Cliente (NOVO)
-- Nova página `/admin/relatorios/clientes` (ou aba dentro de `admin.relatorios.tsx`).
-- Agrupa rotas concluídas por `client_company_id` no período selecionado.
-- Mostra: nº de rotas, faturamento (`revenue`), pagamento motoristas (`driver_pay`), combustível (vindo de `fuel_entries` no período proporcional), lucro líquido.
-- Filtros: mês/ano, motorista opcional.
-- Rotas avulsas agrupam em "Avulsas".
+### Parte 1 — Migrar rotas e abastecimentos para o banco
 
-## 2. Combustível por Rota
-- Adicionar coluna opcional `assigned_route_id` em `fuel_entries` (nullable).
-- No motorista: ao registrar combustível, selecionar (opcional) rota em andamento do dia.
-- No detalhe da rota admin: listar abastecimentos vinculados.
-- Dashboard motorista: passa a usar `revenue - driver_pay - combustivelVinculado` quando vinculado.
-- Compatível: combustível sem rota continua agregado por período.
+Hoje `assigned-routes` e `combustivel` salvam só em `localStorage`. Vou criar duas tabelas com RLS por empresa para que admin enxerga tudo da empresa e motorista enxerga só o dele, em qualquer dispositivo.
 
-## 3. Editar/Excluir Rota Finalizada (admin)
-- Na lista `admin.rotas.tsx` e detalhe `admin.rotas.$routeId.tsx`: botões "Editar valores" e "Excluir".
-- Modal de edição permite alterar `revenue`, `driver_pay`, `cost`, `km_end`, `notes`.
-- Excluir pede confirmação dupla.
-- RLS já permite admin (`is_company_admin`).
+**Migração (tabelas + RLS):**
 
-## 4. Recálculo Retroativo de Tarifas
-- Em `admin.clientes.tsx`, ao editar tarifas: botão "Recalcular rotas existentes deste cliente".
-- ServerFn percorre `assigned_routes` concluídas com aquele `client_company_id`, recalcula `revenue` e `driver_pay` aplicando regra 1ª/2ª do dia.
-- Mostra resumo (X rotas atualizadas) antes de confirmar.
+```text
+assigned_routes
+  - company_id, driver_id (uuid auth), driver_name
+  - code, date_iso, departure, expected_return
+  - origin, destination, total_deliveries, done
+  - km, km_start, km_end, cost, revenue, status, notes
 
-## 5. Validar Timers "Em rota" (motorista)
-- Em `motorista.rotas.tsx`, na seção da rota em andamento:
-  - Tempo desde início (atualiza a cada 1s).
-  - Tempo previsto até destino (se houver `expected_return`).
-  - Indicador "parado" se sem movimento (baseado em última atualização — simplificado: tempo desde último `updated_at`).
-- Hook `useEffect` com `setInterval`.
+fuel_entries
+  - company_id, driver_id (uuid auth), driver_name
+  - date_iso, vehicle, plate, liters, price_per_l, total
+  - odometer, station, notes
+```
 
-## 6. Histórico do motorista
-- Confirmar `motorista.historico.tsx` usando `useDbAssignedRoutes()` filtrado por `driverId` + status `concluido`.
-- Calendário marcando dias com rota concluída.
+RLS:
+- motorista: SELECT/INSERT/UPDATE/DELETE só onde `driver_id = auth.uid()`
+- admin/owner da empresa: SELECT/UPDATE/DELETE em tudo da `company_id` (via `is_company_admin`)
+- INSERT do admin: pode criar rota atribuindo a qualquer motorista da empresa
 
-## 7. Detalhe da rota (admin)
-- Confirmar `admin.rotas.$routeId.tsx` sem crash, com loading e exibição de todos os campos novos (`trip_type`, `client_company_id`, `driver_pay`).
+**Server functions** (`src/lib/routes-db.functions.ts`, `src/lib/fuel-db.functions.ts`):
+- `listMyRoutes()` / `listCompanyRoutes()` / `createAssignedRoute()` / `updateRouteStatus()` / `deleteRoute()`
+- `listMyFuel()` / `listCompanyFuel()` / `createFuelEntry()` / `deleteFuelEntry()`
 
-## Fora de escopo
-- Permissão de motorista editar rota avulsa antes de finalizar.
-- Notificações push de finalização.
-- Relatórios em PDF/Excel.
+**Telas afetadas** — trocar leitura/escrita de localStorage para as server fns:
+- `motorista.rotas.tsx`, `motorista.rotas.nova.tsx`, `motorista.combustivel.tsx`
+- `admin.rotas.tsx`, `admin.rotas.nova.tsx`, `admin.combustivel.tsx`, `admin.financeiro.tsx`, `admin.dashboard.tsx`
 
-## Ordem de execução
-1. Migration (colunas + índices) — itens 2.
-2. ServerFns novas (recálculo, update/delete rota) — itens 3, 4.
-3. UI Admin (relatórios cliente, edição rota, recálculo) — itens 1, 3, 4.
-4. UI Motorista (combustível com rota, timers) — itens 2, 5.
-5. Verificação visual itens 6 e 7 — só ajustes se necessário.
+`localStorage` continua só como fallback para dados mock antigos (drivers seed).
 
-Estimativa: ~12-15 arquivos tocados, 1 migration.
+### Parte 2 — Relatórios em CSV
+
+Em `admin.relatorios.tsx`, habilitar "Exportar CSV" para os relatórios que dependem de dados reais agora disponíveis no banco:
+- **Entregas/rotas por período** — `assigned_routes` filtrado por data + motorista
+- **Custos operacionais** — soma de `fuel_entries.total` + `assigned_routes.cost` por período
+- **Combustível** — `fuel_entries` por veículo/motorista
+- **KM por veículo** — agregado de `fuel_entries.odometer` + `assigned_routes.km`
+- **Lucro por rota** — `revenue - cost` por linha de `assigned_routes`
+
+CSV gerado client-side via `Blob` + download direto (sem dependência nova). Filtros de período, motorista e veículo já existem no painel — só vou ligar ao botão.
+
+### Ordem de execução
+
+1. Migração SQL (tabelas + RLS) — pedir aprovação.
+2. Server functions de rotas e combustível.
+3. Refatorar telas para usar as fns (mantendo UX atual).
+4. Implementar geração de CSV no `admin.relatorios.tsx`.
+
+Confirma para eu rodar a migração?

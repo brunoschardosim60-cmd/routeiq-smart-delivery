@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Truck, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
@@ -17,7 +16,6 @@ type Mode = "signin" | "join" | "owner";
 
 function LoginPage() {
   const navigate = useNavigate();
-  const qc = useQueryClient();
   const [mode, setMode] = useState<Mode>("signin");
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<{ id: string; name: string; slug: string }[]>([]);
@@ -35,7 +33,6 @@ function LoginPage() {
 
   const finalizeSession = async () => {
     const ctx = await getMyContext();
-    qc.setQueryData(["auth", "ctx"], ctx);
     const isOwnerOrAdmin = ctx.roles.includes("owner") || ctx.roles.includes("admin");
     if (ctx.company?.slug) {
       const slug = ctx.company.slug.toLowerCase();

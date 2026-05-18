@@ -7,7 +7,6 @@ import { Plus, X, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useDbFuelEntries, useCreateFuelEntry, useDeleteFuelEntry } from "@/lib/fuel-db";
-import { useDbAssignedRoutes } from "@/lib/routes-db";
 
 export const Route = createFileRoute("/motorista/combustivel")({
   component: CombustivelMotoristaPage,
@@ -17,14 +16,9 @@ function CombustivelMotoristaPage() {
   const { user } = useAuth();
   const driverName = user?.full_name?.trim() || "Motorista";
   const { rows } = useDbFuelEntries();
-  const { rows: allRoutes } = useDbAssignedRoutes();
   const createMut = useCreateFuelEntry();
   const delMut = useDeleteFuelEntry();
   const my = useMemo(() => rows.filter((r) => r.driverId === user?.id), [rows, user?.id]);
-  const myActiveRoutes = useMemo(
-    () => allRoutes.filter((r) => r.driverId === user?.id && r.status !== "concluido"),
-    [allRoutes, user?.id],
-  );
 
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(todayISO());
@@ -35,12 +29,11 @@ function CombustivelMotoristaPage() {
   const [notes, setNotes] = useState("");
   const [vehicle, setVehicle] = useState("");
   const [plate, setPlate] = useState("");
-  const [assignedRouteId, setAssignedRouteId] = useState<string>("");
   const total = (Number(liters || 0) * Number(ppl || 0)).toFixed(2);
 
   const reset = () => {
     setLiters(""); setPpl(""); setOdometer(""); setStation(""); setNotes("");
-    setVehicle(""); setPlate(""); setDate(todayISO()); setAssignedRouteId("");
+    setVehicle(""); setPlate(""); setDate(todayISO());
   };
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -59,7 +52,6 @@ function CombustivelMotoristaPage() {
         odometer: Number(odometer || 0),
         station: station || null,
         notes: notes || null,
-        assignedRouteId: assignedRouteId || null,
       });
       toast.success("Abastecimento registrado", { description: `${litersN} L · ${brl(litersN * pplN)}` });
       reset(); setOpen(false);
@@ -173,21 +165,6 @@ function CombustivelMotoristaPage() {
                 <label className="text-xs text-muted-foreground">Posto</label>
                 <input value={station} onChange={(e) => setStation(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Ipiranga, Shell..." />
               </div>
-              {myActiveRoutes.length > 0 && (
-                <div>
-                  <label className="text-xs text-muted-foreground">Vincular a rota (opcional)</label>
-                  <select
-                    value={assignedRouteId}
-                    onChange={(e) => setAssignedRouteId(e.target.value)}
-                    className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  >
-                    <option value="">Sem rota</option>
-                    {myActiveRoutes.map((r) => (
-                      <option key={r.id} value={r.id}>{r.code} · {r.date} · {r.origin}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
               <div>
                 <label className="text-xs text-muted-foreground">Observação</label>
                 <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" rows={2} />

@@ -1,14 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
 import { Badge } from "@/components/ui/badge";
 import { Building2, Fuel, Wallet, Receipt } from "lucide-react";
 import { brl } from "@/lib/format";
 import { useAuth } from "@/hooks/use-auth";
-import { useDbAssignedRoutes } from "@/lib/routes-db";
-import { useDbFuelEntries } from "@/lib/fuel-db";
-import { useCompanyDrivers } from "@/lib/company-members";
 
 export const Route = createFileRoute("/admin/empresas")({
   component: EmpresasPage,
@@ -16,15 +12,6 @@ export const Route = createFileRoute("/admin/empresas")({
 
 function EmpresasPage() {
   const { company } = useAuth();
-  const { rows } = useDbAssignedRoutes();
-  const { rows: fuel } = useDbFuelEntries();
-  const drivers = useCompanyDrivers();
-
-  const totals = useMemo(() => {
-    const driverPay = rows.filter((r) => r.status === "concluido").reduce((s, r) => s + (r.driverPay ?? 0), 0);
-    const fuelTotal = fuel.reduce((s, f) => s + f.total, 0);
-    return { driverPay, fuelTotal, total: driverPay + fuelTotal };
-  }, [rows, fuel]);
 
   return (
     <div className="space-y-6">
@@ -42,18 +29,18 @@ function EmpresasPage() {
               <Building2 className="h-5 w-5 text-primary" />
               {company?.name ?? "—"}
             </span>
-            <Badge variant="outline">{drivers.length} motorista{drivers.length === 1 ? "" : "s"}</Badge>
+            <Badge variant="outline">0 motoristas</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <Mini label="Pagamento motoristas" value={brl(totals.driverPay)} icon={<Wallet className="h-4 w-4" />} />
-            <Mini label="Combustível" value={brl(totals.fuelTotal)} icon={<Fuel className="h-4 w-4" />} />
+            <Mini label="Pagamento motoristas" value={brl(0)} icon={<Wallet className="h-4 w-4" />} />
+            <Mini label="Combustível" value={brl(0)} icon={<Fuel className="h-4 w-4" />} />
           </div>
           <div className="rounded-lg bg-primary/10 border border-primary/30 p-4 flex items-center justify-between">
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Total a pagar</p>
-              <p className="text-2xl font-bold text-primary">{brl(totals.total)}</p>
+              <p className="text-2xl font-bold text-primary">{brl(0)}</p>
             </div>
             <Receipt className="h-8 w-8 text-primary/60" />
           </div>
@@ -61,9 +48,9 @@ function EmpresasPage() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <MetricCard label="Total motoristas" value={brl(totals.driverPay)} icon={<Wallet className="h-5 w-5" />} accent="info" />
-        <MetricCard label="Total combustível" value={brl(totals.fuelTotal)} icon={<Fuel className="h-5 w-5" />} accent="warning" />
-        <MetricCard label="Total geral" value={brl(totals.total)} icon={<Receipt className="h-5 w-5" />} accent="success" />
+        <MetricCard label="Total motoristas" value={brl(0)} icon={<Wallet className="h-5 w-5" />} accent="info" />
+        <MetricCard label="Total combustível" value={brl(0)} icon={<Fuel className="h-5 w-5" />} accent="warning" />
+        <MetricCard label="Total geral" value={brl(0)} icon={<Receipt className="h-5 w-5" />} accent="success" />
       </div>
     </div>
   );

@@ -16,21 +16,16 @@ export type Database = {
     Tables: {
       assigned_routes: {
         Row: {
-          client_company_id: string | null
           code: string
           company_id: string
-          comprovei_external_id: string | null
           cost: number
           created_at: string
           date_iso: string
           departure: string | null
           destination: string | null
-          destination_lat: number | null
-          destination_lon: number | null
           done: number
           driver_id: string
           driver_name: string
-          driver_pay: number
           expected_return: string | null
           id: string
           km: number
@@ -38,31 +33,22 @@ export type Database = {
           km_start: number | null
           notes: string | null
           origin: string
-          origin_lat: number | null
-          origin_lon: number | null
-          proof_photo_url: string | null
           revenue: number
           status: string
           total_deliveries: number
-          trip_type: string
           updated_at: string
         }
         Insert: {
-          client_company_id?: string | null
           code: string
           company_id: string
-          comprovei_external_id?: string | null
           cost?: number
           created_at?: string
           date_iso: string
           departure?: string | null
           destination?: string | null
-          destination_lat?: number | null
-          destination_lon?: number | null
           done?: number
           driver_id: string
           driver_name: string
-          driver_pay?: number
           expected_return?: string | null
           id?: string
           km?: number
@@ -70,31 +56,22 @@ export type Database = {
           km_start?: number | null
           notes?: string | null
           origin: string
-          origin_lat?: number | null
-          origin_lon?: number | null
-          proof_photo_url?: string | null
           revenue?: number
           status?: string
           total_deliveries?: number
-          trip_type?: string
           updated_at?: string
         }
         Update: {
-          client_company_id?: string | null
           code?: string
           company_id?: string
-          comprovei_external_id?: string | null
           cost?: number
           created_at?: string
           date_iso?: string
           departure?: string | null
           destination?: string | null
-          destination_lat?: number | null
-          destination_lon?: number | null
           done?: number
           driver_id?: string
           driver_name?: string
-          driver_pay?: number
           expected_return?: string | null
           id?: string
           km?: number
@@ -102,52 +79,9 @@ export type Database = {
           km_start?: number | null
           notes?: string | null
           origin?: string
-          origin_lat?: number | null
-          origin_lon?: number | null
-          proof_photo_url?: string | null
           revenue?: number
           status?: string
           total_deliveries?: number
-          trip_type?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      client_companies: {
-        Row: {
-          active: boolean
-          company_id: string
-          created_at: string
-          daily_admin_rate: number
-          daily_driver_rate: number
-          id: string
-          name: string
-          second_admin_rate: number
-          second_driver_rate: number
-          updated_at: string
-        }
-        Insert: {
-          active?: boolean
-          company_id: string
-          created_at?: string
-          daily_admin_rate?: number
-          daily_driver_rate?: number
-          id?: string
-          name: string
-          second_admin_rate?: number
-          second_driver_rate?: number
-          updated_at?: string
-        }
-        Update: {
-          active?: boolean
-          company_id?: string
-          created_at?: string
-          daily_admin_rate?: number
-          daily_driver_rate?: number
-          id?: string
-          name?: string
-          second_admin_rate?: number
-          second_driver_rate?: number
           updated_at?: string
         }
         Relationships: []
@@ -622,96 +556,8 @@ export type Database = {
         }
         Relationships: []
       }
-      driver_locations: {
-        Row: {
-          accuracy: number | null
-          assigned_route_id: string
-          company_id: string
-          created_at: string
-          driver_id: string
-          heading: number | null
-          id: string
-          lat: number
-          lon: number
-          recorded_at: string
-          speed: number | null
-        }
-        Insert: {
-          accuracy?: number | null
-          assigned_route_id: string
-          company_id: string
-          created_at?: string
-          driver_id: string
-          heading?: number | null
-          id?: string
-          lat: number
-          lon: number
-          recorded_at?: string
-          speed?: number | null
-        }
-        Update: {
-          accuracy?: number | null
-          assigned_route_id?: string
-          company_id?: string
-          created_at?: string
-          driver_id?: string
-          heading?: number | null
-          id?: string
-          lat?: number
-          lon?: number
-          recorded_at?: string
-          speed?: number | null
-        }
-        Relationships: []
-      }
-      driver_profiles: {
-        Row: {
-          cnh: string | null
-          company_id: string
-          cpf: string | null
-          created_at: string
-          daily_rate: number
-          monthly_target: number
-          phone: string | null
-          plate: string | null
-          second_trip_rate: number
-          updated_at: string
-          user_id: string
-          vehicle: string | null
-        }
-        Insert: {
-          cnh?: string | null
-          company_id: string
-          cpf?: string | null
-          created_at?: string
-          daily_rate?: number
-          monthly_target?: number
-          phone?: string | null
-          plate?: string | null
-          second_trip_rate?: number
-          updated_at?: string
-          user_id: string
-          vehicle?: string | null
-        }
-        Update: {
-          cnh?: string | null
-          company_id?: string
-          cpf?: string | null
-          created_at?: string
-          daily_rate?: number
-          monthly_target?: number
-          phone?: string | null
-          plate?: string | null
-          second_trip_rate?: number
-          updated_at?: string
-          user_id?: string
-          vehicle?: string | null
-        }
-        Relationships: []
-      }
       fuel_entries: {
         Row: {
-          assigned_route_id: string | null
           company_id: string
           created_at: string
           date_iso: string
@@ -729,7 +575,6 @@ export type Database = {
           vehicle: string | null
         }
         Insert: {
-          assigned_route_id?: string | null
           company_id: string
           created_at?: string
           date_iso: string
@@ -747,7 +592,6 @@ export type Database = {
           vehicle?: string | null
         }
         Update: {
-          assigned_route_id?: string | null
           company_id?: string
           created_at?: string
           date_iso?: string
@@ -768,7 +612,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          avatar_url: string | null
           company_id: string | null
           created_at: string
           full_name: string | null
@@ -776,7 +619,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          avatar_url?: string | null
           company_id?: string | null
           created_at?: string
           full_name?: string | null
@@ -784,7 +626,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          avatar_url?: string | null
           company_id?: string | null
           created_at?: string
           full_name?: string | null

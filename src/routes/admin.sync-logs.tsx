@@ -7,7 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertCircle, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getComproveiSyncLogs } from "@/lib/comprovei-admin.functions";
-import { useCompanyDrivers } from "@/lib/company-members";
 
 export const Route = createFileRoute("/admin/sync-logs")({
   component: AdminLogsPage,
@@ -17,8 +16,6 @@ function AdminLogsPage() {
   const fetchLogs = useServerFn(getComproveiSyncLogs);
   const [trigger, setTrigger] = useState<"all" | "manual" | "auto">("all");
   const [status, setStatus] = useState<"all" | "ok" | "error" | "partial">("all");
-  const [driverId, setDriverId] = useState<string>("all");
-  const drivers = useCompanyDrivers();
 
   const { data: logs, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["sync-logs", trigger, status],
@@ -66,16 +63,6 @@ function AdminLogsPage() {
             <option value="error">Erro</option>
             <option value="partial">Parcial</option>
           </select>
-          <select
-            value={driverId}
-            onChange={(e) => setDriverId(e.target.value)}
-            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="all">Todos motoristas</option>
-            {drivers.map((d) => (
-              <option key={d.id} value={d.id}>{d.name}</option>
-            ))}
-          </select>
         </CardContent>
       </Card>
 
@@ -101,7 +88,7 @@ function AdminLogsPage() {
                 </tr>
               </thead>
               <tbody>
-                {logs?.filter((l) => driverId === "all" || (l.message ?? "").includes(driverId)).map((l) => {
+                {logs?.map((l) => {
                   const Icon = l.status === "ok" ? CheckCircle2 : l.status === "error" ? AlertCircle : AlertTriangle;
                   const variant: "default" | "destructive" | "secondary" =
                     l.status === "ok" ? "default" : l.status === "error" ? "destructive" : "secondary";

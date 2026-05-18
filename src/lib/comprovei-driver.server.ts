@@ -2,7 +2,6 @@
 // Cada motorista tem suas próprias credenciais (criptografadas no banco).
 // O job de sync itera por todas as credenciais ativas e busca eventos.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { bridgeDriverComproveiRoutes } from "./comprovei-bridge.server";
 
 function basicAuth(user: string, pwd: string) {
   return "Basic " + btoa(`${user}:${pwd}`);
@@ -101,13 +100,7 @@ export async function syncDriverComprovei(cred: DriverCred): Promise<DriverSyncR
       }
     } catch {/* ignora falha de WS601 */}
 
-    // Bridge: cria/atualiza/finaliza assigned_routes a partir das rotas Comprovei
-    try {
-      const bridge = await bridgeDriverComproveiRoutes(cred.driver_id);
-      message = `Sync OK — ${events} eventos, ${routes} rotas, ${stops} paradas. Bridge: +${bridge.created} criadas, ${bridge.updated} atualizadas, ${bridge.finished} finalizadas.`;
-    } catch (e) {
-      message = `Sync OK — ${events} eventos, ${routes} rotas, ${stops} paradas. (bridge falhou: ${e instanceof Error ? e.message : "erro"})`;
-    }
+    message = `Sync OK — ${events} eventos, ${routes} rotas, ${stops} paradas.`;
   } catch (e) {
     ok = false;
     message = e instanceof Error ? e.message : "Falha desconhecida";

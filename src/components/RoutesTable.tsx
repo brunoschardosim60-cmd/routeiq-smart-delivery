@@ -177,7 +177,7 @@ export function RoutesTable({
                 </tr>
               )}
               {sorted.map((r) => (
-                <tr key={r.id} className="border-b border-border/60 last:border-0 transition-colors hover:bg-accent/40">
+                <tr key={r.id} className="border-b border-border/60 last:border-0">
                   <td className="py-3">{r.date}</td>
                   <td className="py-3">
                     <div className="flex items-center gap-2">
@@ -196,38 +196,11 @@ export function RoutesTable({
                         ? "bg-primary/10 text-primary border-primary/30"
                         : "bg-success/10 text-success border-success/30",
                     )}>
-                      {r.companyName ?? (r.company === "BS" ? "BS Soluções" : "DBM")}
+                      {r.company === "BS" ? "BS Soluções" : "DBM"}
                     </span>
                   </td>
-                  <td className="py-3 font-mono text-xs">
-                    <div className="flex items-center gap-1.5">
-                      {r.code}
-                      {r.comproveiExternalId && (
-                        <span
-                          title={`Importado do Comprovei · ${r.comproveiExternalId}`}
-                          className="rounded-full border border-info/30 bg-info/10 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-info"
-                        >
-                          Comprovei
-                        </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="py-3 min-w-[120px]">
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 max-w-[80px]">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              r.done >= r.totalDeliveries ? "bg-success" : "bg-primary",
-                            )}
-                            style={{ width: `${r.totalDeliveries ? Math.min(100, (r.done / r.totalDeliveries) * 100) : 0}%` }}
-                          />
-                        </div>
-                      </div>
-                      <span className="text-xs tabular-nums text-muted-foreground">{r.done}/{r.totalDeliveries}</span>
-                    </div>
-                  </td>
+                  <td className="py-3 font-mono text-xs">{r.code}</td>
+                  <td className="py-3">{r.done}/{r.totalDeliveries}</td>
                   <td className="py-3">{r.km} km</td>
                   <td className="py-3">{r.duration}</td>
                   <td className="py-3">{brl(r.cost)}</td>

@@ -14,9 +14,6 @@ import {
   testComproveiConnection,
 } from "@/lib/comprovei.functions";
 import { useAuth } from "@/hooks/use-auth";
-import { listCompanyMembers } from "@/lib/company-members.functions";
-import { listDriverProfiles } from "@/lib/driver-profile.functions";
-import { Users, Car } from "lucide-react";
 
 export const Route = createFileRoute("/admin/configuracoes")({
   component: ConfigPage,
@@ -31,102 +28,6 @@ function GeralTab() {
         <input readOnly value={company?.name ?? ""} className="mt-1 w-full rounded-md border border-input bg-muted px-3 py-2 text-sm" />
       </div>
       <p className="text-xs text-muted-foreground">As demais informações da empresa serão configuradas em breve.</p>
-    </CardContent></Card>
-  );
-}
-
-function UsuariosTab() {
-  const fetchMembers = useServerFn(listCompanyMembers);
-  const q = useQuery({ queryKey: ["company-members-cfg"], queryFn: () => fetchMembers(), staleTime: 30_000 });
-  const members = q.data?.members ?? [];
-
-  return (
-    <Card><CardContent className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold flex items-center gap-2"><Users className="h-4 w-4" /> Usuários da empresa</h3>
-          <p className="text-xs text-muted-foreground">{members.length} cadastrado(s)</p>
-        </div>
-      </div>
-      {q.isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando…</p>
-      ) : members.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum usuário ainda. Convide motoristas pela tela de Motoristas.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="pb-2 font-medium">Nome</th>
-                <th className="pb-2 font-medium">Papéis</th>
-                <th className="pb-2 font-medium">Desde</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((m) => (
-                <tr key={m.id} className="border-b border-border/60 last:border-0">
-                  <td className="py-2">{m.full_name || "—"}</td>
-                  <td className="py-2">
-                    {m.roles.length === 0 ? (
-                      <span className="text-xs text-muted-foreground">sem papel</span>
-                    ) : m.roles.map((r) => (
-                      <span key={r} className="mr-1 inline-block rounded-full border border-border bg-muted px-2 py-0.5 text-[10px] uppercase tracking-wide">{r}</span>
-                    ))}
-                  </td>
-                  <td className="py-2 text-xs text-muted-foreground">{new Date(m.created_at).toLocaleDateString("pt-BR")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </CardContent></Card>
-  );
-}
-
-function VeiculosTab() {
-  const fetchMembers = useServerFn(listCompanyMembers);
-  const fetchProfiles = useServerFn(listDriverProfiles);
-  const mQ = useQuery({ queryKey: ["company-members-cfg"], queryFn: () => fetchMembers(), staleTime: 30_000 });
-  const pQ = useQuery({ queryKey: ["driver-profiles-cfg"], queryFn: () => fetchProfiles(), staleTime: 30_000 });
-
-  const nameById = new Map((mQ.data?.members ?? []).map((m) => [m.id, m.full_name || "—"]));
-  const vehicles = (pQ.data?.rows ?? []).filter((p) => (p.plate ?? p.vehicle));
-
-  return (
-    <Card><CardContent className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h3 className="text-sm font-semibold flex items-center gap-2"><Car className="h-4 w-4" /> Veículos da frota</h3>
-          <p className="text-xs text-muted-foreground">Derivado dos cadastros dos motoristas</p>
-        </div>
-      </div>
-      {pQ.isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando…</p>
-      ) : vehicles.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum veículo cadastrado. Edite o perfil de cada motorista para adicionar placa e modelo.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr className="border-b border-border">
-                <th className="pb-2 font-medium">Placa</th>
-                <th className="pb-2 font-medium">Veículo</th>
-                <th className="pb-2 font-medium">Motorista</th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehicles.map((v) => (
-                <tr key={v.user_id} className="border-b border-border/60 last:border-0">
-                  <td className="py-2 font-mono text-xs">{v.plate || "—"}</td>
-                  <td className="py-2">{v.vehicle || "—"}</td>
-                  <td className="py-2 text-muted-foreground">{nameById.get(v.user_id) ?? "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </CardContent></Card>
   );
 }
@@ -154,10 +55,10 @@ function ConfigPage() {
         </TabsContent>
 
         <TabsContent value="usuarios" className="mt-4">
-          <UsuariosTab />
+          <Card><CardContent className="p-6 text-sm text-muted-foreground">Gerenciamento de usuários do sistema.</CardContent></Card>
         </TabsContent>
         <TabsContent value="veiculos" className="mt-4">
-          <VeiculosTab />
+          <Card><CardContent className="p-6 text-sm text-muted-foreground">Cadastro de veículos da frota.</CardContent></Card>
         </TabsContent>
 
         <TabsContent value="financeiro" className="mt-4">

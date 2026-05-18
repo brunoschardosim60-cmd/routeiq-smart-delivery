@@ -17,7 +17,6 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as MotoristaRotasRouteImport } from './routes/motorista.rotas'
-import { Route as MotoristaPerfilRouteImport } from './routes/motorista.perfil'
 import { Route as MotoristaNotificacoesRouteImport } from './routes/motorista.notificacoes'
 import { Route as MotoristaHistoricoRouteImport } from './routes/motorista.historico'
 import { Route as MotoristaFinanceiroRouteImport } from './routes/motorista.financeiro'
@@ -27,19 +26,16 @@ import { Route as MotoristaCombustivelRouteImport } from './routes/motorista.com
 import { Route as AdminSyncLogsRouteImport } from './routes/admin.sync-logs'
 import { Route as AdminRotasRouteImport } from './routes/admin.rotas'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
-import { Route as AdminRastreamentoRouteImport } from './routes/admin.rastreamento'
 import { Route as AdminPagamentosRouteImport } from './routes/admin.pagamentos'
 import { Route as AdminNotificacoesRouteImport } from './routes/admin.notificacoes'
 import { Route as AdminMotoristasRouteImport } from './routes/admin.motoristas'
 import { Route as AdminMetasRouteImport } from './routes/admin.metas'
-import { Route as AdminHeatmapRouteImport } from './routes/admin.heatmap'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
 import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminComproveiRouteImport } from './routes/admin.comprovei'
 import { Route as AdminCombustivelRouteImport } from './routes/admin.combustivel'
-import { Route as AdminClientesRouteImport } from './routes/admin.clientes'
 import { Route as MotoristaRotasNovaRouteImport } from './routes/motorista.rotas.nova'
 import { Route as AdminRotasNovaRouteImport } from './routes/admin.rotas.nova'
 import { Route as AdminRotasRouteIdRouteImport } from './routes/admin.rotas.$routeId'
@@ -84,11 +80,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const MotoristaRotasRoute = MotoristaRotasRouteImport.update({
   id: '/rotas',
   path: '/rotas',
-  getParentRoute: () => MotoristaRoute,
-} as any)
-const MotoristaPerfilRoute = MotoristaPerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
   getParentRoute: () => MotoristaRoute,
 } as any)
 const MotoristaNotificacoesRoute = MotoristaNotificacoesRouteImport.update({
@@ -136,11 +127,6 @@ const AdminRelatoriosRoute = AdminRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminRastreamentoRoute = AdminRastreamentoRouteImport.update({
-  id: '/rastreamento',
-  path: '/rastreamento',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminPagamentosRoute = AdminPagamentosRouteImport.update({
   id: '/pagamentos',
   path: '/pagamentos',
@@ -159,11 +145,6 @@ const AdminMotoristasRoute = AdminMotoristasRouteImport.update({
 const AdminMetasRoute = AdminMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminHeatmapRoute = AdminHeatmapRouteImport.update({
-  id: '/heatmap',
-  path: '/heatmap',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
@@ -194,11 +175,6 @@ const AdminComproveiRoute = AdminComproveiRouteImport.update({
 const AdminCombustivelRoute = AdminCombustivelRouteImport.update({
   id: '/combustivel',
   path: '/combustivel',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminClientesRoute = AdminClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
   getParentRoute: () => AdminRoute,
 } as any)
 const MotoristaRotasNovaRoute = MotoristaRotasNovaRouteImport.update({
@@ -235,19 +211,16 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/motorista': typeof MotoristaRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
-  '/admin/clientes': typeof AdminClientesRoute
   '/admin/combustivel': typeof AdminCombustivelRoute
   '/admin/comprovei': typeof AdminComproveiRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
-  '/admin/heatmap': typeof AdminHeatmapRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
-  '/admin/rastreamento': typeof AdminRastreamentoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/rotas': typeof AdminRotasRouteWithChildren
   '/admin/sync-logs': typeof AdminSyncLogsRoute
@@ -257,7 +230,6 @@ export interface FileRoutesByFullPath {
   '/motorista/financeiro': typeof MotoristaFinanceiroRoute
   '/motorista/historico': typeof MotoristaHistoricoRoute
   '/motorista/notificacoes': typeof MotoristaNotificacoesRoute
-  '/motorista/perfil': typeof MotoristaPerfilRoute
   '/motorista/rotas': typeof MotoristaRotasRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
@@ -272,19 +244,16 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/motorista': typeof MotoristaRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
-  '/admin/clientes': typeof AdminClientesRoute
   '/admin/combustivel': typeof AdminCombustivelRoute
   '/admin/comprovei': typeof AdminComproveiRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
-  '/admin/heatmap': typeof AdminHeatmapRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
-  '/admin/rastreamento': typeof AdminRastreamentoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/rotas': typeof AdminRotasRouteWithChildren
   '/admin/sync-logs': typeof AdminSyncLogsRoute
@@ -294,7 +263,6 @@ export interface FileRoutesByTo {
   '/motorista/financeiro': typeof MotoristaFinanceiroRoute
   '/motorista/historico': typeof MotoristaHistoricoRoute
   '/motorista/notificacoes': typeof MotoristaNotificacoesRoute
-  '/motorista/perfil': typeof MotoristaPerfilRoute
   '/motorista/rotas': typeof MotoristaRotasRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
@@ -311,19 +279,16 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/motorista': typeof MotoristaRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
-  '/admin/clientes': typeof AdminClientesRoute
   '/admin/combustivel': typeof AdminCombustivelRoute
   '/admin/comprovei': typeof AdminComproveiRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
-  '/admin/heatmap': typeof AdminHeatmapRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
-  '/admin/rastreamento': typeof AdminRastreamentoRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/rotas': typeof AdminRotasRouteWithChildren
   '/admin/sync-logs': typeof AdminSyncLogsRoute
@@ -333,7 +298,6 @@ export interface FileRoutesById {
   '/motorista/financeiro': typeof MotoristaFinanceiroRoute
   '/motorista/historico': typeof MotoristaHistoricoRoute
   '/motorista/notificacoes': typeof MotoristaNotificacoesRoute
-  '/motorista/perfil': typeof MotoristaPerfilRoute
   '/motorista/rotas': typeof MotoristaRotasRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
@@ -351,19 +315,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/motorista'
     | '/reset-password'
-    | '/admin/clientes'
     | '/admin/combustivel'
     | '/admin/comprovei'
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/financeiro'
-    | '/admin/heatmap'
     | '/admin/metas'
     | '/admin/motoristas'
     | '/admin/notificacoes'
     | '/admin/pagamentos'
-    | '/admin/rastreamento'
     | '/admin/relatorios'
     | '/admin/rotas'
     | '/admin/sync-logs'
@@ -373,7 +334,6 @@ export interface FileRouteTypes {
     | '/motorista/financeiro'
     | '/motorista/historico'
     | '/motorista/notificacoes'
-    | '/motorista/perfil'
     | '/motorista/rotas'
     | '/admin/'
     | '/admin/motoristas/$driverId'
@@ -388,19 +348,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/motorista'
     | '/reset-password'
-    | '/admin/clientes'
     | '/admin/combustivel'
     | '/admin/comprovei'
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/financeiro'
-    | '/admin/heatmap'
     | '/admin/metas'
     | '/admin/motoristas'
     | '/admin/notificacoes'
     | '/admin/pagamentos'
-    | '/admin/rastreamento'
     | '/admin/relatorios'
     | '/admin/rotas'
     | '/admin/sync-logs'
@@ -410,7 +367,6 @@ export interface FileRouteTypes {
     | '/motorista/financeiro'
     | '/motorista/historico'
     | '/motorista/notificacoes'
-    | '/motorista/perfil'
     | '/motorista/rotas'
     | '/admin'
     | '/admin/motoristas/$driverId'
@@ -426,19 +382,16 @@ export interface FileRouteTypes {
     | '/login'
     | '/motorista'
     | '/reset-password'
-    | '/admin/clientes'
     | '/admin/combustivel'
     | '/admin/comprovei'
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/financeiro'
-    | '/admin/heatmap'
     | '/admin/metas'
     | '/admin/motoristas'
     | '/admin/notificacoes'
     | '/admin/pagamentos'
-    | '/admin/rastreamento'
     | '/admin/relatorios'
     | '/admin/rotas'
     | '/admin/sync-logs'
@@ -448,7 +401,6 @@ export interface FileRouteTypes {
     | '/motorista/financeiro'
     | '/motorista/historico'
     | '/motorista/notificacoes'
-    | '/motorista/perfil'
     | '/motorista/rotas'
     | '/admin/'
     | '/admin/motoristas/$driverId'
@@ -526,13 +478,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MotoristaRotasRouteImport
       parentRoute: typeof MotoristaRoute
     }
-    '/motorista/perfil': {
-      id: '/motorista/perfil'
-      path: '/perfil'
-      fullPath: '/motorista/perfil'
-      preLoaderRoute: typeof MotoristaPerfilRouteImport
-      parentRoute: typeof MotoristaRoute
-    }
     '/motorista/notificacoes': {
       id: '/motorista/notificacoes'
       path: '/notificacoes'
@@ -596,13 +541,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRelatoriosRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/rastreamento': {
-      id: '/admin/rastreamento'
-      path: '/rastreamento'
-      fullPath: '/admin/rastreamento'
-      preLoaderRoute: typeof AdminRastreamentoRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/pagamentos': {
       id: '/admin/pagamentos'
       path: '/pagamentos'
@@ -629,13 +567,6 @@ declare module '@tanstack/react-router' {
       path: '/metas'
       fullPath: '/admin/metas'
       preLoaderRoute: typeof AdminMetasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/heatmap': {
-      id: '/admin/heatmap'
-      path: '/heatmap'
-      fullPath: '/admin/heatmap'
-      preLoaderRoute: typeof AdminHeatmapRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/financeiro': {
@@ -678,13 +609,6 @@ declare module '@tanstack/react-router' {
       path: '/combustivel'
       fullPath: '/admin/combustivel'
       preLoaderRoute: typeof AdminCombustivelRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/clientes': {
-      id: '/admin/clientes'
-      path: '/clientes'
-      fullPath: '/admin/clientes'
-      preLoaderRoute: typeof AdminClientesRouteImport
       parentRoute: typeof AdminRoute
     }
     '/motorista/rotas/nova': {
@@ -752,19 +676,16 @@ const AdminRotasRouteWithChildren = AdminRotasRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
-  AdminClientesRoute: typeof AdminClientesRoute
   AdminCombustivelRoute: typeof AdminCombustivelRoute
   AdminComproveiRoute: typeof AdminComproveiRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
-  AdminHeatmapRoute: typeof AdminHeatmapRoute
   AdminMetasRoute: typeof AdminMetasRoute
   AdminMotoristasRoute: typeof AdminMotoristasRouteWithChildren
   AdminNotificacoesRoute: typeof AdminNotificacoesRoute
   AdminPagamentosRoute: typeof AdminPagamentosRoute
-  AdminRastreamentoRoute: typeof AdminRastreamentoRoute
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
   AdminRotasRoute: typeof AdminRotasRouteWithChildren
   AdminSyncLogsRoute: typeof AdminSyncLogsRoute
@@ -772,19 +693,16 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
-  AdminClientesRoute: AdminClientesRoute,
   AdminCombustivelRoute: AdminCombustivelRoute,
   AdminComproveiRoute: AdminComproveiRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
-  AdminHeatmapRoute: AdminHeatmapRoute,
   AdminMetasRoute: AdminMetasRoute,
   AdminMotoristasRoute: AdminMotoristasRouteWithChildren,
   AdminNotificacoesRoute: AdminNotificacoesRoute,
   AdminPagamentosRoute: AdminPagamentosRoute,
-  AdminRastreamentoRoute: AdminRastreamentoRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,
   AdminRotasRoute: AdminRotasRouteWithChildren,
   AdminSyncLogsRoute: AdminSyncLogsRoute,
@@ -812,7 +730,6 @@ interface MotoristaRouteChildren {
   MotoristaFinanceiroRoute: typeof MotoristaFinanceiroRoute
   MotoristaHistoricoRoute: typeof MotoristaHistoricoRoute
   MotoristaNotificacoesRoute: typeof MotoristaNotificacoesRoute
-  MotoristaPerfilRoute: typeof MotoristaPerfilRoute
   MotoristaRotasRoute: typeof MotoristaRotasRouteWithChildren
 }
 
@@ -823,7 +740,6 @@ const MotoristaRouteChildren: MotoristaRouteChildren = {
   MotoristaFinanceiroRoute: MotoristaFinanceiroRoute,
   MotoristaHistoricoRoute: MotoristaHistoricoRoute,
   MotoristaNotificacoesRoute: MotoristaNotificacoesRoute,
-  MotoristaPerfilRoute: MotoristaPerfilRoute,
   MotoristaRotasRoute: MotoristaRotasRouteWithChildren,
 }
 
@@ -843,13 +759,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

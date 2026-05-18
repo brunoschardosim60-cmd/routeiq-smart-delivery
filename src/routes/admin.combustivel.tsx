@@ -2,14 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
-import { brl, num, todayISO, parseISODate } from "@/lib/format";
+import { brl, num, todayISO } from "@/lib/format";
 import { toast } from "sonner";
 import { Plus, X, Trash2 } from "lucide-react";
 import { useDbFuelEntries, useCreateFuelEntry, useDeleteFuelEntry } from "@/lib/fuel-db";
 import { useCompanyDrivers } from "@/lib/company-members";
 import { useAuth } from "@/hooks/use-auth";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-
 
 export const Route = createFileRoute("/admin/combustivel")({
   component: CombustivelPage,
@@ -88,8 +86,6 @@ function CombustivelPage() {
         <MetricCard label="Litros" value={`${litersMonth} L`} accent="success" />
         <MetricCard label="Motoristas" value={String(driverOptions.length)} />
       </div>
-
-      <FuelChart rows={rows} />
 
       <Card>
         <CardHeader><CardTitle className="text-base">Abastecimentos</CardTitle></CardHeader>
@@ -204,50 +200,5 @@ function CombustivelPage() {
         </div>
       )}
     </div>
-  );
-}
-
-function FuelChart({ rows }: { rows: ReturnType<typeof useDbFuelEntries>["rows"] }) {
-  const data = useMemo(() => {
-    const today = parseISODate(todayISO());
-    const days: { date: string; label: string; total: number; litros: number }[] = [];
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const iso = d.toISOString().slice(0, 10);
-      const label = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}`;
-      days.push({ date: iso, label, total: 0, litros: 0 });
-    }
-    const map = new Map(days.map((d) => [d.date, d]));
-    for (const r of rows) {
-      const e = map.get(r.dateISO);
-      if (!e) continue;
-      e.total += r.total ?? 0;
-      e.litros += r.liters ?? 0;
-    }
-    return days;
-  }, [rows]);
-
-  if (rows.length === 0) return null;
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Gasto com combustível — 30 dias</CardTitle></CardHeader>
-      <CardContent>
-        <div className="h-[260px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={11} interval={4} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `R$ ${v}`} />
-              <Tooltip
-                formatter={(v: number) => brl(v)}
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-              />
-              <Bar dataKey="total" name="Total" fill="hsl(var(--warning))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

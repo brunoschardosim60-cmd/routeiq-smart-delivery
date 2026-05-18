@@ -13,7 +13,6 @@ const CreateFuelSchema = z.object({
   odometer: z.number().nullable().optional(),
   station: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  assignedRouteId: z.string().uuid().nullable().optional(),
 });
 
 export interface FuelDbRow {
@@ -31,7 +30,6 @@ export interface FuelDbRow {
   station: string | null;
   notes: string | null;
   created_at: string;
-  assigned_route_id: string | null;
 }
 
 async function getMyCompanyId(supabase: any, userId: string): Promise<string | null> {
@@ -80,7 +78,6 @@ export const createFuelEntry = createServerFn({ method: "POST" })
         odometer: data.odometer ?? null,
         station: data.station ?? null,
         notes: data.notes ?? null,
-        assigned_route_id: data.assignedRouteId ?? null,
       })
       .select("*")
       .single();

@@ -2,41 +2,46 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
-import { useDbAssignedRoutes } from "@/lib/routes-db";
+import { routesData } from "@/lib/mock-data";
+import { useAssignedRoutes } from "@/lib/assigned-routes";
+import { computePayroll } from "@/lib/payroll";
 import { brl, num, parseISODate, todayISO } from "@/lib/format";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
+import { useCurrentCompany } from "@/lib/current-company";
 
 export const Route = createFileRoute("/admin/pagamentos")({
   component: PagamentosPage,
 });
 
 function PagamentosPage() {
-  const { rows, isLoading } = useDbAssignedRoutes();
+  const assigned = useAssignedRoutes();
+  const [scope] = useCurrentCompany();
+  const company: "all" | "DBM" | "BS" = scope === "todas" ? "all" : scope;
   const [period, setPeriod] = useState("month");
 
+  const paid = useMemo(() => computePayroll([...routesData, ...assigned]), [assigned]);
   const filtered = useMemo(() => {
     const today = parseISODate(todayISO());
-    return rows.filter((r) => {
-      if (r.status !== "concluido") return false;
+    return paid.filter((r) => {
+      if (company !== "all" && r.company !== company) return false;
       const diff = (today.getTime() - parseISODate(r.dateISO).getTime()) / 86400000;
       if (period === "today" && !(diff >= 0 && diff < 1)) return false;
       if (period === "week" && diff > 7) return false;
       if (period === "month" && diff > 30) return false;
       return true;
     });
-  }, [rows, period]);
+  }, [paid, company, period]);
 
   const totals = useMemo(() => {
-    const diaria = filtered.filter((r) => r.tripType !== "segunda");
-    const segunda = filtered.filter((r) => r.tripType === "segunda");
-    return {
-      qtd: filtered.length,
-      saidas2: segunda.length,
-      payDaily: diaria.reduce((s, r) => s + (r.driverPay ?? 0), 0),
-      payExtra: segunda.reduce((s, r) => s + (r.driverPay ?? 0), 0),
-      total: filtered.reduce((s, r) => s + (r.driverPay ?? 0), 0),
-      revenue: filtered.reduce((s, r) => s + (r.revenue ?? 0), 0),
-    };
+    const dbm = filtered.filter((r) => r.company === "DBM");
+    const bs = filtered.filter((r) => r.company === "BS");
+    const sum = (arr: typeof filtered) => ({
+      diaria: arr.reduce((s, r) => s + r.payDaily, 0),
+      extra: arr.reduce((s, r) => s + r.payExtra, 0),
+      total: arr.reduce((s, r) => s + r.payTotal, 0),
+      qtd: arr.length,
+      saidas2: arr.filter((r) => r.isSecondTripAuto).length,
+    });
+    return { all: sum(filtered), dbm: sum(dbm), bs: sum(bs) };
   }, [filtered]);
 
   return (
@@ -44,25 +49,51 @@ function PagamentosPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pagamentos por Rota</h1>
-          <p className="text-sm text-muted-foreground">Diária + 2ª saída calculados automaticamente no fechamento da rota</p>
+          <p className="text-sm text-muted-foreground">Diária + 2ª saída calculados automaticamente por rota</p>
         </div>
-        <select value={period} onChange={(e) => setPeriod(e.target.value)}
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm">
-          <option value="today">Hoje</option>
-          <option value="week">Últimos 7 dias</option>
-          <option value="month">Últimos 30 dias</option>
-          <option value="all">Todo período</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <select value={period} onChange={(e) => setPeriod(e.target.value)}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm">
+            <option value="today">Hoje</option>
+            <option value="week">Últimos 7 dias</option>
+            <option value="month">Últimos 30 dias</option>
+            <option value="all">Todo período</option>
+          </select>
+          <span className="rounded-md border border-input bg-muted px-3 py-2 text-xs text-muted-foreground">
+            Empresa: <span className="font-medium text-foreground">{company === "all" ? "Todas" : company === "BS" ? "BS Soluções" : "DBM"}</span>
+          </span>
+
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Rotas concluídas" value={num(totals.qtd)} />
-        <MetricCard label="2ª saídas" value={num(totals.saidas2)} accent="info" />
-        <MetricCard label="Faturamento" value={brl(totals.revenue)} accent="success" />
-        <MetricCard label="Total a pagar motoristas" value={brl(totals.total)} accent="warning" />
+        <MetricCard label="Rotas" value={num(totals.all.qtd)} />
+        <MetricCard label="2ª saídas" value={num(totals.all.saidas2)} accent="info" />
+        <MetricCard label="Diárias" value={brl(totals.all.diaria)} accent="success" />
+        <MetricCard label="Total pago" value={brl(totals.all.total)} accent="success" />
       </div>
 
-      <PagamentosChart rows={filtered} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {([
+          { key: "DBM", title: "DBM", data: totals.dbm },
+          { key: "BS", title: "BS Soluções", data: totals.bs },
+        ] as const).map((c) => (
+          <Card key={c.key}>
+            <CardHeader className="pb-2"><CardTitle className="text-base">{c.title}</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-3 text-sm">
+                <div><p className="text-xs text-muted-foreground">Rotas</p><p className="font-semibold">{c.data.qtd}</p></div>
+                <div><p className="text-xs text-muted-foreground">2ª saídas</p><p className="font-semibold text-info">{c.data.saidas2}</p></div>
+                <div><p className="text-xs text-muted-foreground">Diárias</p><p className="font-semibold">{brl(c.data.diaria)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Extras</p><p className="font-semibold text-info">{brl(c.data.extra)}</p></div>
+              </div>
+              <div className="mt-3 rounded-md bg-success/10 px-3 py-2 text-sm">
+                Total a pagar — <span className="font-semibold text-success">{brl(c.data.total)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Detalhe por rota</CardTitle></CardHeader>
@@ -73,33 +104,33 @@ function PagamentosPage() {
                 <th className="pb-2 font-medium">Data</th>
                 <th className="pb-2 font-medium">Saída</th>
                 <th className="pb-2 font-medium">Motorista</th>
+                <th className="pb-2 font-medium">Empresa</th>
                 <th className="pb-2 font-medium">Rota</th>
                 <th className="pb-2 font-medium">Tipo</th>
-                <th className="pb-2 font-medium">Faturamento</th>
-                <th className="pb-2 font-medium">Pagto motorista</th>
+                <th className="pb-2 font-medium">Diária</th>
+                <th className="pb-2 font-medium">2ª saída</th>
+                <th className="pb-2 font-medium">Total</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 && (
-                <tr><td colSpan={7} className="py-10 text-center text-muted-foreground">
-                  {isLoading ? "Carregando…" : "Sem rotas concluídas no período."}
-                </td></tr>
+                <tr><td colSpan={9} className="py-10 text-center text-muted-foreground">Sem rotas no período.</td></tr>
               )}
               {filtered.map((r) => (
                 <tr key={r.id} className="border-b border-border/60 last:border-0">
                   <td className="py-3">{r.date}</td>
-                  <td className="py-3 font-mono text-xs">{r.departure || "—"}</td>
+                  <td className="py-3 font-mono text-xs">{r.departure}</td>
                   <td className="py-3">{r.driverName}</td>
+                  <td className="py-3"><span className={`rounded-md border px-2 py-0.5 text-[11px] ${r.company === "DBM" ? "border-primary/30 bg-primary/10 text-primary" : "border-success/30 bg-success/10 text-success"}`}>{r.company === "BS" ? "BS Soluções" : "DBM"}</span></td>
                   <td className="py-3 font-mono text-xs">{r.code}</td>
                   <td className="py-3">
-                    {r.tripType === "segunda"
+                    {r.isSecondTripAuto
                       ? <span className="rounded-full bg-info/15 text-info border border-info/30 px-2 py-0.5 text-[10px] font-medium">2ª saída</span>
-                      : r.tripType === "avulsa"
-                        ? <span className="rounded-full bg-warning/15 text-warning border border-warning/30 px-2 py-0.5 text-[10px] font-medium">Avulsa</span>
-                        : <span className="rounded-full bg-muted text-muted-foreground border border-border px-2 py-0.5 text-[10px] font-medium">Diária</span>}
+                      : <span className="rounded-full bg-muted text-muted-foreground border border-border px-2 py-0.5 text-[10px] font-medium">Diária</span>}
                   </td>
-                  <td className="py-3">{brl(r.revenue ?? 0)}</td>
-                  <td className="py-3 font-semibold text-success">{brl(r.driverPay ?? 0)}</td>
+                  <td className="py-3">{r.payDaily ? brl(r.payDaily) : "—"}</td>
+                  <td className="py-3 text-info">{r.payExtra ? brl(r.payExtra) : "—"}</td>
+                  <td className="py-3 font-semibold text-success">{brl(r.payTotal)}</td>
                 </tr>
               ))}
             </tbody>
@@ -108,46 +139,8 @@ function PagamentosPage() {
       </Card>
 
       <p className="text-xs text-muted-foreground italic">
-        A 1ª rota concluída do dia paga diária; rotas adicionais entram como 2ª saída. Rotas avulsas usam valores definidos na criação.
+        Regra: para cada motorista no mesmo dia, a 1ª rota (menor horário de saída) é remunerada como diária; rotas adicionais entram como 2ª saída usando o valor configurado no perfil do motorista.
       </p>
     </div>
-  );
-}
-
-function PagamentosChart({ rows }: { rows: ReturnType<typeof useDbAssignedRoutes>["rows"] }) {
-  const data = useMemo(() => {
-    const map = new Map<string, { driver: string; diaria: number; segunda: number }>();
-    for (const r of rows) {
-      const e = map.get(r.driverName) ?? { driver: r.driverName, diaria: 0, segunda: 0 };
-      if (r.tripType === "segunda") e.segunda += r.driverPay ?? 0;
-      else e.diaria += r.driverPay ?? 0;
-      map.set(r.driverName, e);
-    }
-    return Array.from(map.values()).sort((a, b) => (b.diaria + b.segunda) - (a.diaria + a.segunda)).slice(0, 10);
-  }, [rows]);
-
-  if (data.length === 0) return null;
-  return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">Pagamentos por motorista (período)</CardTitle></CardHeader>
-      <CardContent>
-        <div className="h-[280px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={data} margin={{ top: 10, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="driver" stroke="hsl(var(--muted-foreground))" fontSize={11} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={11} tickFormatter={(v) => `R$ ${v}`} />
-              <Tooltip
-                formatter={(v: number) => brl(v)}
-                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 }}
-              />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="diaria" name="Diária" stackId="a" fill="hsl(var(--primary))" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="segunda" name="2ª saída" stackId="a" fill="hsl(var(--info))" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </CardContent>
-    </Card>
   );
 }

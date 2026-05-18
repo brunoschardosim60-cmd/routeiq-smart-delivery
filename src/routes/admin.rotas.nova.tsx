@@ -3,14 +3,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCompanyDrivers } from "@/lib/company-members";
 import { useDbAssignedRoutes, useCreateAssignedRoute, useDeleteAssignedRoute } from "@/lib/routes-db";
-import { useServerFn } from "@tanstack/react-start";
-import { updateRouteCoords } from "@/lib/routes-db.functions";
 import { brl, todayISO } from "@/lib/format";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
-import { useClientCompanies } from "@/lib/client-companies";
-import { AddressAutocomplete, computeRouteKm, type AddressSuggestion } from "@/components/AddressAutocomplete";
 
 export const Route = createFileRoute("/admin/rotas/nova")({
   component: NovaRotaPage,
@@ -23,7 +19,6 @@ function NovaRotaPage() {
   const { rows: assigned } = useDbAssignedRoutes();
   const createMut = useCreateAssignedRoute();
   const delMut = useDeleteAssignedRoute();
-  const saveCoords = useServerFn(updateRouteCoords);
 
   const driverOptions = useMemo(() => {
     const opts = drivers.map((d) => ({ id: d.id.replace(/^auth-/, ""), name: d.name }));
@@ -41,20 +36,9 @@ function NovaRotaPage() {
   const [departure, setDeparture] = useState("08:00");
   const [expectedReturn, setExpectedReturn] = useState("13:00");
   const [origin, setOrigin] = useState("CD São Paulo - Vila Leopoldina");
-  const [originCoord, setOriginCoord] = useState<AddressSuggestion | null>(null);
-  const [destination, setDestination] = useState("");
-  const [destinationCoord, setDestinationCoord] = useState<AddressSuggestion | null>(null);
   const [totalDeliveries, setTotalDeliveries] = useState(20);
   const [km, setKm] = useState(80);
-  const [kmAuto, setKmAuto] = useState(false);
-  const [kmLoading, setKmLoading] = useState(false);
   const [notes, setNotes] = useState("");
-  const { rows: clientCompanies } = useClientCompanies();
-  const activeClients = clientCompanies.filter((c) => c.active);
-  const [clientCompanyId, setClientCompanyId] = useState<string>("");
-  const [isAvulsa, setIsAvulsa] = useState(false);
-  const [avulsaRevenue, setAvulsaRevenue] = useState<number>(0);
-  const [avulsaDriverPay, setAvulsaDriverPay] = useState<number>(0);
 
   const driver = driverOptions.find((d) => d.id === driverId);
 
@@ -64,64 +48,23 @@ function NovaRotaPage() {
   );
   const willBeSecond = sameDayCount >= 1;
 
-  // Auto-calc KM via OSRM quando origem e destino tiverem coords
-  useEffect(() => {
-    if (!originCoord || !destinationCoord) return;
-    let cancelled = false;
-    setKmLoading(true);
-    computeRouteKm(originCoord, destinationCoord)
-      .then((d) => {
-        if (cancelled) return;
-        // ida + volta (rota fechada)
-        const round = Math.round(d * 2);
-        setKm(round);
-        setKmAuto(true);
-      })
-      .finally(() => !cancelled && setKmLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, [originCoord, destinationCoord]);
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!driver) { toast.error("Selecione um motorista"); return; }
-    if (!isAvulsa && !clientCompanyId && activeClients.length > 0) {
-      toast.error("Selecione a empresa cliente ou marque como avulsa");
-      return;
-    }
     try {
-      const created = await createMut.mutateAsync({
+      await createMut.mutateAsync({
         driverId: driver.id,
         driverName: driver.name,
         dateISO,
         departure,
         expectedReturn,
         origin,
-        destination: destination || null,
         totalDeliveries,
         km,
         notes: notes || null,
-        clientCompanyId: isAvulsa ? null : (clientCompanyId || null),
-        tripType: isAvulsa ? "avulsa" : "diaria",
-        revenue: isAvulsa ? avulsaRevenue : 0,
-        driverPay: isAvulsa ? avulsaDriverPay : 0,
-        cost: isAvulsa ? avulsaDriverPay : 0,
       });
-      // Salvar coords (origem/destino) quando vieram do autocomplete
-      if (created?.id && (originCoord || destinationCoord)) {
-        try {
-          await saveCoords({ data: {
-            id: created.id,
-            originLat: originCoord?.lat,
-            originLon: originCoord?.lon,
-            lat: destinationCoord?.lat,
-            lon: destinationCoord?.lon,
-          }});
-        } catch {}
-      }
       toast.success(`Rota atribuída a ${driver.name}`, {
-        description: isAvulsa ? "Rota avulsa (valores manuais)" : willBeSecond ? "2ª saída do dia" : "1ª saída do dia",
+        description: willBeSecond ? "2ª saída do dia" : "1ª saída do dia",
       });
       navigate({ to: "/admin/rotas" });
     } catch (err: any) {
@@ -175,91 +118,14 @@ function NovaRotaPage() {
               <input type="time" value={expectedReturn} onChange={(e) => setExpectedReturn(e.target.value)} className={inputCls} required />
             </Field>
             <Field label="Origem (CD / cliente)" className="md:col-span-2">
-              <AddressAutocomplete
-                value={origin}
-                onChange={(v) => { setOrigin(v); setOriginCoord(null); setKmAuto(false); }}
-                onSelect={(s) => setOriginCoord(s)}
-                placeholder="Digite o endereço de partida..."
-                required
-              />
-            </Field>
-            <Field label="Destino (cidade / endereço)" className="md:col-span-2">
-              <AddressAutocomplete
-                value={destination}
-                onChange={(v) => { setDestination(v); setDestinationCoord(null); setKmAuto(false); }}
-                onSelect={(s) => setDestinationCoord(s)}
-                biasLat={originCoord?.lat ?? null}
-                biasLon={originCoord?.lon ?? null}
-                placeholder="Selecione um endereço para calcular o KM automaticamente"
-              />
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                {originCoord
-                  ? "Sugestões priorizadas perto da origem."
-                  : "Selecione a origem para receber sugestões da região."}
-              </p>
+              <input value={origin} onChange={(e) => setOrigin(e.target.value)} className={inputCls} required />
             </Field>
             <Field label="Total de entregas">
               <input type="number" min={1} value={totalDeliveries} onChange={(e) => setTotalDeliveries(+e.target.value)} className={inputCls} required />
             </Field>
-            <Field label={`KM previsto${kmAuto ? " (ida + volta — calculado)" : ""}`}>
-              <div className="relative">
-                <input
-                  type="number"
-                  min={0}
-                  value={km}
-                  onChange={(e) => { setKm(+e.target.value); setKmAuto(false); }}
-                  className={inputCls}
-                  required
-                />
-                {kmLoading && (
-                  <span className="absolute right-2 top-2.5 text-xs text-muted-foreground">calculando…</span>
-                )}
-              </div>
+            <Field label="KM previsto">
+              <input type="number" min={0} value={km} onChange={(e) => setKm(+e.target.value)} className={inputCls} required />
             </Field>
-            <div className="md:col-span-2 space-y-3 rounded-md border border-border bg-muted/30 p-3">
-              <label className="inline-flex items-center gap-2 text-sm font-medium">
-                <input type="checkbox" checked={isAvulsa} onChange={(e) => setIsAvulsa(e.target.checked)} />
-                Rota avulsa (valores variáveis, definidos manualmente)
-              </label>
-              {!isAvulsa ? (
-                <Field label="Empresa cliente">
-                  <select
-                    value={clientCompanyId}
-                    onChange={(e) => setClientCompanyId(e.target.value)}
-                    className={inputCls}
-                    required={activeClients.length > 0}
-                  >
-                    <option value="">
-                      {activeClients.length === 0
-                        ? "Nenhuma empresa cliente cadastrada"
-                        : "Selecione a empresa..."}
-                    </option>
-                    {activeClients.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </Field>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Field label="Receita (valor que você cobra do cliente)">
-                    <input type="number" min={0} step="0.01" value={avulsaRevenue}
-                      onChange={(e) => setAvulsaRevenue(e.target.value === "" ? 0 : +e.target.value)}
-                      className={inputCls} required />
-                  </Field>
-                  <Field label="Pagamento do motorista">
-                    <input type="number" min={0} step="0.01" value={avulsaDriverPay}
-                      onChange={(e) => setAvulsaDriverPay(e.target.value === "" ? 0 : +e.target.value)}
-                      className={inputCls} required />
-                  </Field>
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground">
-                {isAvulsa
-                  ? "Os valores informados serão usados como receita e pagamento ao motorista quando a rota for finalizada."
-                  : "Os valores serão calculados automaticamente pela tarifa da empresa cliente quando o motorista finalizar a rota (1ª saída ou 2ª saída do dia)."}
-              </p>
-            </div>
-
             <Field label="Observações" className="md:col-span-2">
               <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={inputCls} />
             </Field>

@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
-import { useDbAssignedRoutes } from "@/lib/routes-db";
-import { useAuth } from "@/hooks/use-auth";
+import { driverMonthlyTable, top10Months } from "@/lib/mock-data";
 import { brl, num } from "@/lib/format";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -15,76 +15,23 @@ export const Route = createFileRoute("/motorista/historico")({
 const MONTHS = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 
 function HistoricoPage() {
-  const { user } = useAuth();
-  const { rows } = useDbAssignedRoutes();
   const now = new Date();
-  const [m, setM] = useState(now.getMonth());
-  const [year, setYear] = useState(now.getFullYear());
-
-  const mine = useMemo(
-    () => rows.filter((r) => r.driverId === user?.id && r.status === "concluido"),
-    [rows, user?.id],
-  );
-
+  const [m, setM] = useState(now.getFullYear() === 2026 ? now.getMonth() : 0);
+  const year = 2026;
   const daysInMonth = new Date(year, m + 1, 0).getDate();
-  const firstWeekday = new Date(year, m, 1).getDay();
+  const firstWeekday = new Date(year, m, 1).getDay(); // 0=Dom..6=Sáb
   const today = now.getFullYear() === year && now.getMonth() === m ? now.getDate() : -1;
-
-  const dayInfo = useMemo(() => {
-    const monthPrefix = `${year}-${String(m + 1).padStart(2, "0")}`;
-    const map: Record<number, { entregas: number; km: number; ganho: number }> = {};
-    for (const r of mine) {
-      if (!r.dateISO.startsWith(monthPrefix)) continue;
-      const day = parseInt(r.dateISO.slice(8, 10), 10);
-      const acc = map[day] ?? { entregas: 0, km: 0, ganho: 0 };
-      acc.entregas += r.done;
-      acc.km += r.km;
-      acc.ganho += r.driverPay ?? 0;
-      map[day] = acc;
-    }
-    return map;
-  }, [mine, m, year]);
-
-  const yearStats = useMemo(() => {
-    const yearRows = mine.filter((r) => r.dateISO.startsWith(`${year}-`));
-    return {
-      dias: new Set(yearRows.map((r) => r.dateISO)).size,
-      entregas: yearRows.reduce((s, r) => s + r.done, 0),
-      km: yearRows.reduce((s, r) => s + r.km, 0),
-      ganho: yearRows.reduce((s, r) => s + (r.driverPay ?? 0), 0),
-    };
-  }, [mine, year]);
-
-  const monthlyTable = useMemo(() => {
-    const map = new Map<string, { dias: Set<string>; entregas: number; km: number; ganho: number }>();
-    for (const r of mine) {
-      if (!r.dateISO.startsWith(`${year}-`)) continue;
-      const key = r.dateISO.slice(0, 7);
-      const acc = map.get(key) ?? { dias: new Set(), entregas: 0, km: 0, ganho: 0 };
-      acc.dias.add(r.dateISO);
-      acc.entregas += r.done;
-      acc.km += r.km;
-      acc.ganho += r.driverPay ?? 0;
-      map.set(key, acc);
-    }
-    return Array.from(map.entries()).sort(([a],[b]) => a.localeCompare(b)).map(([k, v]) => ({
-      mes: MONTHS[parseInt(k.slice(5, 7), 10) - 1],
-      dias: v.dias.size,
-      entregas: v.entregas,
-      km: v.km,
-      ganho: v.ganho,
-    }));
-  }, [mine, year]);
+  const dayInfo: Record<number, { entregas: number; km: number; ganho: number }> = {};
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Meu Histórico</h1>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Dias trabalhados (ano)" value={String(yearStats.dias)} />
-        <MetricCard label="Total de entregas" value={num(yearStats.entregas)} accent="info" />
-        <MetricCard label="KM total do ano" value={`${num(yearStats.km)} km`} />
-        <MetricCard label="Ganho do ano" value={brl(yearStats.ganho)} accent="success" />
+        <MetricCard label="Dias trabalhados (ano)" value="0" />
+        <MetricCard label="Total de entregas" value={num(0)} accent="info" />
+        <MetricCard label="KM total do ano" value="0 km" />
+        <MetricCard label="Ganho estimado" value={brl(0)} accent="success" />
       </div>
 
       <Card>
@@ -96,7 +43,7 @@ function HistoricoPage() {
               <select value={m} onChange={(e) => setM(Number(e.target.value))} className="rounded-md border border-input bg-background px-2 py-1 text-sm">
                 {MONTHS.map((mn, i) => <option key={i} value={i}>{mn}</option>)}
               </select>
-              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-24 rounded-md border border-input bg-background px-2 py-1 text-sm" />
+              <span className="rounded-md border border-input bg-muted px-2 py-1 text-sm">2026</span>
               <button onClick={() => setM(Math.min(11, m + 1))} className="rounded-md border border-border p-1.5 hover:bg-accent"><ChevronRight className="h-4 w-4" /></button>
             </div>
           </div>
@@ -132,11 +79,31 @@ function HistoricoPage() {
               );
             })}
           </div>
+          <div className="mt-4 flex flex-wrap gap-4 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-success/20 border border-success/40" /> Trabalhou</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-muted/30 border border-border" /> Não trabalhou</span>
+            <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded bg-primary" /> Hoje</span>
+          </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Resumo mensal · {year}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base">Top 10 meses com mais entregas</CardTitle></CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={320}>
+            <BarChart data={top10Months} layout="vertical" margin={{ left: 30 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis type="number" stroke="var(--color-muted-foreground)" fontSize={12} />
+              <YAxis type="category" dataKey="mes" stroke="var(--color-muted-foreground)" fontSize={12} width={70} />
+              <Tooltip contentStyle={{ background: "var(--color-card)", border: "1px solid var(--color-border)", borderRadius: 8 }} />
+              <Bar dataKey="entregas" fill="var(--color-primary)" radius={[0, 6, 6, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle className="text-base">Resumo mensal</CardTitle></CardHeader>
         <CardContent className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
@@ -145,14 +112,11 @@ function HistoricoPage() {
                 <th className="pb-2 font-medium">Dias</th>
                 <th className="pb-2 font-medium">Entregas</th>
                 <th className="pb-2 font-medium">KM</th>
-                <th className="pb-2 font-medium">Ganho</th>
+                <th className="pb-2 font-medium">Ganho estimado</th>
               </tr>
             </thead>
             <tbody>
-              {monthlyTable.length === 0 && (
-                <tr><td colSpan={5} className="py-10 text-center text-muted-foreground">Nenhuma rota concluída neste ano.</td></tr>
-              )}
-              {monthlyTable.map((row) => (
+              {driverMonthlyTable.map((row) => (
                 <tr key={row.mes} className="border-b border-border/60">
                   <td className="py-3">{row.mes}</td>
                   <td className="py-3">{row.dias}</td>
@@ -161,6 +125,13 @@ function HistoricoPage() {
                   <td className="py-3 text-success">{brl(row.ganho)}</td>
                 </tr>
               ))}
+              <tr className="font-semibold">
+                <td className="pt-3">Total</td>
+                <td className="pt-3">{driverMonthlyTable.reduce((a,b) => a+b.dias, 0)}</td>
+                <td className="pt-3">{num(driverMonthlyTable.reduce((a,b) => a+b.entregas, 0))}</td>
+                <td className="pt-3">{num(driverMonthlyTable.reduce((a,b) => a+b.km, 0))} km</td>
+                <td className="pt-3 text-success">{brl(driverMonthlyTable.reduce((a,b) => a+b.ganho, 0))}</td>
+              </tr>
             </tbody>
           </table>
         </CardContent>

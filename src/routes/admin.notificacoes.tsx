@@ -1,12 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useNotifications, type RealNotification } from "@/lib/notifications";
-import type { NotifType } from "@/lib/notifications.functions";
+import { notificationsData, type AppNotification, type NotificationType } from "@/lib/mock-data";
 import { AlertTriangle, Fuel, Route as RouteIcon, DollarSign, Info, XCircle, CheckCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const iconFor = (t: NotifType) => {
+const iconFor = (t: NotificationType) => {
   switch (t) {
     case "atraso": return AlertTriangle;
     case "problema": return XCircle;
@@ -16,7 +15,8 @@ const iconFor = (t: NotifType) => {
     default: return Info;
   }
 };
-const colorFor = (t: NotifType) => {
+
+const colorFor = (t: NotificationType) => {
   switch (t) {
     case "atraso": return "text-warning bg-warning/15";
     case "problema": return "text-destructive bg-destructive/15";
@@ -28,14 +28,16 @@ const colorFor = (t: NotifType) => {
 };
 
 export function NotificationsList({ audience }: { audience: "admin" | "motorista" }) {
-  void audience;
   const navigate = useNavigate();
-  const { items, unread, markRead, markAllRead, loading } = useNotifications();
+  const [items, setItems] = useState<AppNotification[]>(
+    notificationsData.filter((n) => n.audience === audience),
+  );
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const visible = filter === "unread" ? items.filter((n) => !n.read) : items;
 
-  const onClick = (n: RealNotification) => {
-    markRead(n.id);
+  const markAllRead = () => setItems((arr) => arr.map((n) => ({ ...n, read: true })));
+  const onClick = (n: AppNotification) => {
+    setItems((arr) => arr.map((x) => (x.id === n.id ? { ...x, read: true } : x)));
     if (n.link) navigate({ to: n.link.to as never, params: n.link.params as never });
   };
 
@@ -45,7 +47,7 @@ export function NotificationsList({ audience }: { audience: "admin" | "motorista
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Notificações</h1>
           <p className="text-sm text-muted-foreground">
-            {unread} não lida(s) de {items.length}
+            {items.filter((n) => !n.read).length} não lida(s) de {items.length}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -68,10 +70,7 @@ export function NotificationsList({ audience }: { audience: "admin" | "motorista
 
       <Card>
         <CardContent className="p-0">
-          {loading && (
-            <p className="p-12 text-center text-sm text-muted-foreground">Carregando…</p>
-          )}
-          {!loading && visible.length === 0 && (
+          {visible.length === 0 && (
             <p className="p-12 text-center text-sm text-muted-foreground">
               Nenhuma notificação para exibir.
             </p>
@@ -96,7 +95,7 @@ export function NotificationsList({ audience }: { audience: "admin" | "motorista
                     {!n.read && <span className="h-2 w-2 rounded-full bg-primary" />}
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">{n.desc}</p>
-                  <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">{n.timeLabel}</p>
+                  <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">{n.time}</p>
                 </div>
               </button>
             );

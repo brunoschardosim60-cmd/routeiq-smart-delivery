@@ -1,182 +1,141 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/MetricCard";
 import { Progress } from "@/components/ui/progress";
-import { useDbAssignedRoutes } from "@/lib/routes-db";
-import { useCompanyDrivers } from "@/lib/company-members";
-import { useDriverProfileMap, useUpsertDriverProfile } from "@/lib/driver-profile";
-import { brl, num, pct, todayISO } from "@/lib/format";
-import { toast } from "sonner";
-import { Save } from "lucide-react";
+import { routesData } from "@/lib/mock-data";
+import { useAssignedRoutes } from "@/lib/assigned-routes";
+import { computePayroll, computeMonthlyMeta, summarizeByCompany } from "@/lib/payroll";
+import { brl, num, pct } from "@/lib/format";
 
 export const Route = createFileRoute("/admin/metas")({
   component: MetasPage,
 });
 
 function MetasPage() {
-  const { rows } = useDbAssignedRoutes();
-  const drivers = useCompanyDrivers();
-  const profileMap = useDriverProfileMap();
-  const upsert = useUpsertDriverProfile();
-  const [month, setMonth] = useState(todayISO().slice(0, 7));
+  const assigned = useAssignedRoutes();
+  const [month, setMonth] = useState("2025-05");
+  const [companyFilter, setCompanyFilter] = useState<"all" | "DBM" | "BS">("all");
 
-  const list = useMemo(() => {
-    const monthRows = rows.filter((r) => r.dateISO.startsWith(month) && r.status === "concluido");
-    const byDriver = new Map<string, typeof monthRows>();
-    for (const r of monthRows) {
-      const arr = byDriver.get(r.driverId) ?? [];
-      arr.push(r);
-      byDriver.set(r.driverId, arr);
-    }
-    return drivers.map((d) => {
-      const did = d.id.replace(/^auth-/, "");
-      const items = byDriver.get(did) ?? [];
-      const deliveries = items.reduce((s, r) => s + r.done, 0);
-      const secondTrips = items.filter((r) => r.tripType === "segunda").length;
-      const baseFromDaily = items.filter((r) => r.tripType !== "segunda").reduce((s, r) => s + (r.driverPay ?? 0), 0);
-      const extraFromSecondTrips = items.filter((r) => r.tripType === "segunda").reduce((s, r) => s + (r.driverPay ?? 0), 0);
-      const target = profileMap.get(did)?.monthly_target ?? 0;
-      return {
-        driverId: did,
-        name: d.name,
-        deliveries,
-        routes: items.length,
-        secondTrips,
-        target,
-        pctTarget: target > 0 ? Math.min(100, (deliveries / target) * 100) : 0,
-        baseFromDaily,
-        extraFromSecondTrips,
-        totalPaid: baseFromDaily + extraFromSecondTrips,
-        profile: profileMap.get(did),
-      };
-    }).sort((a, b) => b.totalPaid - a.totalPaid);
-  }, [rows, drivers, profileMap, month]);
+  const paid = useMemo(() => computePayroll([...routesData, ...assigned]), [assigned]);
+  const metas = useMemo(() => computeMonthlyMeta(paid, month), [paid, month]);
+  const companies = useMemo(() => summarizeByCompany(metas), [metas]);
 
-  const totals = useMemo(() => ({
-    drivers: list.length,
-    deliveries: list.reduce((s, m) => s + m.deliveries, 0),
-    secondTrips: list.reduce((s, m) => s + m.secondTrips, 0),
-    totalPaid: list.reduce((s, m) => s + m.totalPaid, 0),
-  }), [list]);
+  const list = companyFilter === "all" ? metas : metas.filter((m) => m.driver.company === companyFilter);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Metas Mensais</h1>
-          <p className="text-sm text-muted-foreground">Defina a meta de entregas por motorista e acompanhe o progresso do mês</p>
+          <p className="text-sm text-muted-foreground">Entregas no mês × meta · impacto das 2ª saídas</p>
         </div>
-        <input
-          type="month"
-          value={month}
-          onChange={(e) => setMonth(e.target.value)}
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-        />
+        <div className="flex items-center gap-2">
+          <input
+            type="month"
+            value={month}
+            onChange={(e) => setMonth(e.target.value)}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          <select
+            value={companyFilter}
+            onChange={(e) => setCompanyFilter(e.target.value as "all" | "DBM" | "BS")}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="all">Todas as empresas</option>
+            <option value="DBM">DBM</option>
+            <option value="BS">BS Soluções</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {companies.map((c) => (
+          <Card key={c.company}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>{c.company === "BS" ? "BS Soluções" : "DBM"}</span>
+                <span className={`text-xs font-semibold ${c.pctTarget >= 100 ? "text-success" : c.pctTarget >= 70 ? "text-info" : "text-warning"}`}>
+                  {pct(c.pctTarget)}
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Progress value={Math.min(c.pctTarget, 100)} className="h-2" />
+              <div className="grid grid-cols-4 gap-3 text-sm">
+                <div><p className="text-xs text-muted-foreground">Motoristas</p><p className="font-semibold">{c.drivers}</p></div>
+                <div><p className="text-xs text-muted-foreground">Entregas</p><p className="font-semibold">{num(c.deliveries)}</p></div>
+                <div><p className="text-xs text-muted-foreground">Meta</p><p className="font-semibold">{num(c.target)}</p></div>
+                <div><p className="text-xs text-muted-foreground">2ª saídas</p><p className="font-semibold text-info">{c.secondTrips}</p></div>
+              </div>
+              <div className="mt-2 flex items-center justify-between rounded-md border border-border bg-muted/30 p-3 text-xs">
+                <div>
+                  <p className="text-muted-foreground">Pago no mês</p>
+                  <p className="text-base font-semibold">{brl(c.totalPaid)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-muted-foreground">Diárias <span className="text-foreground">{brl(c.baseFromDaily)}</span></p>
+                  <p className="text-muted-foreground">2ª saídas <span className="text-info">{brl(c.extraFromSecondTrips)}</span></p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Motoristas" value={String(totals.drivers)} />
-        <MetricCard label="Entregas no mês" value={num(totals.deliveries)} accent="info" />
-        <MetricCard label="2ª saídas" value={String(totals.secondTrips)} accent="warning" />
-        <MetricCard label="Total a pagar" value={brl(totals.totalPaid)} accent="success" />
+        <MetricCard label="Motoristas" value={String(list.length)} />
+        <MetricCard label="Entregas no mês" value={num(list.reduce((s, m) => s + m.deliveries, 0))} accent="info" />
+        <MetricCard label="2ª saídas" value={String(list.reduce((s, m) => s + m.secondTrips, 0))} accent="warning" />
+        <MetricCard label="Total a pagar" value={brl(list.reduce((s, m) => s + m.totalPaid, 0))} accent="success" />
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base">Progresso por motorista</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {list.length === 0 && (
-            <p className="py-10 text-center text-sm text-muted-foreground">Nenhum motorista cadastrado ainda.</p>
-          )}
-          {list.map((m) => (
-            <GoalRow
-              key={m.driverId}
-              row={m}
-              saving={upsert.isPending}
-              onSave={async (newTarget) => {
-                try {
-                  await upsert.mutateAsync({
-                    data: {
-                      userId: m.driverId,
-                      dailyRate: Number(m.profile?.daily_rate ?? 0),
-                      secondTripRate: Number(m.profile?.second_trip_rate ?? 0),
-                      monthlyTarget: newTarget,
-                      vehicle: m.profile?.vehicle ?? null,
-                      plate: m.profile?.plate ?? null,
-                      cnh: m.profile?.cnh ?? null,
-                      phone: m.profile?.phone ?? null,
-                      cpf: m.profile?.cpf ?? null,
-                    },
-                  });
-                  toast.success(`Meta de ${m.name} atualizada`);
-                } catch (err) {
-                  const msg = err instanceof Error ? err.message : "Erro ao salvar";
-                  toast.error(msg);
-                }
-              }}
-            />
-          ))}
+        <CardHeader><CardTitle className="text-base">Detalhamento por motorista</CardTitle></CardHeader>
+        <CardContent className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <tr className="border-b border-border">
+                <th className="pb-2 font-medium">Motorista</th>
+                <th className="pb-2 font-medium">Empresa</th>
+                <th className="pb-2 font-medium">Rotas</th>
+                <th className="pb-2 font-medium">Entregas</th>
+                <th className="pb-2 font-medium">Meta</th>
+                <th className="pb-2 font-medium">% Meta</th>
+                <th className="pb-2 font-medium">2ª saídas</th>
+                <th className="pb-2 font-medium">Diárias</th>
+                <th className="pb-2 font-medium">Extras</th>
+                <th className="pb-2 font-medium">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {list.map((m) => (
+                <tr key={m.driver.id} className="border-b border-border/60 last:border-0">
+                  <td className="py-3">
+                    <Link to="/admin/motoristas/$driverId" params={{ driverId: m.driver.id }} className="hover:underline">
+                      {m.driver.name}
+                    </Link>
+                  </td>
+                  <td className="py-3"><span className={`rounded-md border px-2 py-0.5 text-[11px] ${m.driver.company === "DBM" ? "border-primary/30 bg-primary/10 text-primary" : "border-success/30 bg-success/10 text-success"}`}>{m.driver.company === "BS" ? "BS Soluções" : "DBM"}</span></td>
+                  <td className="py-3">{m.routes}</td>
+                  <td className="py-3">{num(m.deliveries)}</td>
+                  <td className="py-3 text-muted-foreground">{num(m.target)}</td>
+                  <td className="py-3" style={{ minWidth: 140 }}>
+                    <div className="flex items-center gap-2">
+                      <Progress value={Math.min(m.pctTarget, 100)} className="h-1.5 w-20" />
+                      <span className={`text-xs ${m.pctTarget >= 100 ? "text-success" : m.pctTarget >= 70 ? "text-info" : "text-warning"}`}>{pct(m.pctTarget)}</span>
+                    </div>
+                  </td>
+                  <td className="py-3"><span className="text-info">{m.secondTrips}</span></td>
+                  <td className="py-3">{brl(m.baseFromDaily)}</td>
+                  <td className="py-3 text-info">{brl(m.extraFromSecondTrips)}</td>
+                  <td className="py-3 font-semibold text-success">{brl(m.totalPaid)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </CardContent>
       </Card>
-    </div>
-  );
-}
-
-function GoalRow({
-  row, onSave, saving,
-}: {
-  row: {
-    driverId: string; name: string; deliveries: number; routes: number;
-    secondTrips: number; target: number; pctTarget: number; totalPaid: number;
-  };
-  onSave: (target: number) => Promise<void>;
-  saving: boolean;
-}) {
-  const [val, setVal] = useState(String(row.target));
-  useEffect(() => { setVal(String(row.target)); }, [row.target]);
-  const dirty = Number(val || 0) !== row.target;
-
-  return (
-    <div className="rounded-lg border border-border p-4 hover:bg-accent/30 transition-colors">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/admin/motoristas/$driverId" params={{ driverId: row.driverId }} className="font-medium hover:underline">
-          {row.name}
-        </Link>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{row.routes} rotas · {row.secondTrips} 2ª saídas</span>
-          <span className="font-semibold text-success">{brl(row.totalPaid)}</span>
-        </div>
-      </div>
-      <div className="mt-3 flex flex-wrap items-end gap-3">
-        <label className="text-xs">
-          <span className="text-muted-foreground">Meta (entregas/mês)</span>
-          <input
-            type="number"
-            value={val}
-            min={0}
-            onChange={(e) => setVal(e.target.value)}
-            className="mt-1 w-28 rounded-md border border-input bg-background px-2 py-1 text-sm"
-          />
-        </label>
-        <button
-          disabled={!dirty || saving}
-          onClick={() => onSave(Number(val || 0))}
-          className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-40"
-        >
-          <Save className="h-3 w-3" /> Salvar
-        </button>
-        <div className="flex-1 min-w-[200px]">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">
-              {row.target > 0 ? `${num(row.deliveries)} de ${num(row.target)} entregas` : `${num(row.deliveries)} entregas (sem meta)`}
-            </span>
-            <span className={row.pctTarget >= 100 ? "font-semibold text-success" : "text-muted-foreground"}>
-              {row.target > 0 ? pct(row.pctTarget) : "—"}
-            </span>
-          </div>
-          <Progress value={row.pctTarget} className="mt-1.5 h-2" />
-        </div>
-      </div>
     </div>
   );
 }

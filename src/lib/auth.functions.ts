@@ -3,7 +3,7 @@ import { z } from "zod";
 
 const emptyAuthContext = () => ({
   userId: null as string | null,
-  profile: null as { id: string; company_id: string | null; full_name: string | null; avatar_url: string | null } | null,
+  profile: null as { id: string; company_id: string | null; full_name: string | null } | null,
   company: null as { id: string; name: string; slug: string } | null,
   roles: [] as ("owner" | "admin" | "motorista")[],
 });
@@ -25,7 +25,7 @@ export const getMyContext = createServerFn({ method: "GET" })
     if (userError || !userId) return emptyAuthContext();
 
     const [{ data: profile }, { data: roles }] = await Promise.all([
-      supabaseAdmin.from("profiles").select("id, company_id, full_name, avatar_url").eq("id", userId).maybeSingle(),
+      supabaseAdmin.from("profiles").select("id, company_id, full_name").eq("id", userId).maybeSingle(),
       supabaseAdmin.from("user_roles").select("role, company_id").eq("user_id", userId),
     ]);
 
