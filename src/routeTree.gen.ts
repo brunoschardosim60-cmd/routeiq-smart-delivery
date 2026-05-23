@@ -31,6 +31,7 @@ import { Route as AdminNotificacoesRouteImport } from './routes/admin.notificaco
 import { Route as AdminMotoristasRouteImport } from './routes/admin.motoristas'
 import { Route as AdminMetasRouteImport } from './routes/admin.metas'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
+import { Route as AdminExportarRouteImport } from './routes/admin.exportar'
 import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
@@ -152,6 +153,11 @@ const AdminFinanceiroRoute = AdminFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminExportarRoute = AdminExportarRouteImport.update({
+  id: '/exportar',
+  path: '/exportar',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
+  '/admin/exportar': typeof AdminExportarRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
+  '/admin/exportar': typeof AdminExportarRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
+  '/admin/exportar': typeof AdminExportarRoute
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
+    | '/admin/exportar'
     | '/admin/financeiro'
     | '/admin/metas'
     | '/admin/motoristas'
@@ -353,6 +363,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
+    | '/admin/exportar'
     | '/admin/financeiro'
     | '/admin/metas'
     | '/admin/motoristas'
@@ -387,6 +398,7 @@ export interface FileRouteTypes {
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
+    | '/admin/exportar'
     | '/admin/financeiro'
     | '/admin/metas'
     | '/admin/motoristas'
@@ -576,6 +588,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminFinanceiroRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/exportar': {
+      id: '/admin/exportar'
+      path: '/exportar'
+      fullPath: '/admin/exportar'
+      preLoaderRoute: typeof AdminExportarRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/empresas': {
       id: '/admin/empresas'
       path: '/empresas'
@@ -681,6 +700,7 @@ interface AdminRouteChildren {
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
+  AdminExportarRoute: typeof AdminExportarRoute
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminMetasRoute: typeof AdminMetasRoute
   AdminMotoristasRoute: typeof AdminMotoristasRouteWithChildren
@@ -698,6 +718,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
+  AdminExportarRoute: AdminExportarRoute,
   AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminMetasRoute: AdminMetasRoute,
   AdminMotoristasRoute: AdminMotoristasRouteWithChildren,
@@ -759,13 +780,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

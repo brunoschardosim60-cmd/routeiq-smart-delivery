@@ -2,7 +2,7 @@ import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Route as RouteIcon, DollarSign, Fuel, FileBarChart,
   Settings, LogOut, Truck, Home, Wallet, History, Bell, Link2, Building2, ListChecks,
-  ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
+  ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen, Download,
 } from "lucide-react";
 import { logout, type Role } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -35,6 +35,7 @@ const adminGroups = [
       { to: "/admin/empresas",      label: "Empresas",            icon: Building2 },
       { to: "/admin/comprovei",     label: "Conexões Comprovei",  icon: Link2 },
       { to: "/admin/sync-logs",     label: "Logs de Sync",        icon: ListChecks },
+      { to: "/admin/exportar",      label: "Exportar Dados",      icon: Download },
       { to: "/admin/notificacoes",  label: "Notificações",        icon: Bell },
       { to: "/admin/configuracoes", label: "Configurações",       icon: Settings },
     ],
