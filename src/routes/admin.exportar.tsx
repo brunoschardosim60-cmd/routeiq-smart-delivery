@@ -53,10 +53,43 @@ function downloadCsv(filename: string, rows: any[]) {
 
 function ExportarPage() {
   const [loading, setLoading] = useState<string | null>(null);
+  const [sql, setSql] = useState<string>("");
+  const [copied, setCopied] = useState(false);
   const { data: resources } = useQuery({
     queryKey: ["export", "resources"],
     queryFn: () => listExportResources(),
   });
+
+  const loadSql = async () => {
+    setLoading("sql");
+    try {
+      const res = await exportSchemaSql();
+      setSql(res.sql);
+      toast.success("SQL gerado");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao gerar SQL");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const copySql = async () => {
+    if (!sql) return;
+    await navigator.clipboard.writeText(sql);
+    setCopied(true);
+    toast.success("SQL copiado");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadSql = () => {
+    if (!sql) return;
+    const blob = new Blob([sql], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = "schema.sql";
+    document.body.appendChild(a); a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 0);
+  };
 
   const handleTable = async (table: string) => {
     setLoading(`table:${table}`);
@@ -141,6 +174,56 @@ function ExportarPage() {
           Exportar tudo
         </button>
       </div>
+
+      {/* SQL Schema */}
+      <Card>
+        <CardContent className="p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15 text-primary">
+              <FileCode className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold">SQL das tabelas (schema)</h3>
+              <p className="text-xs text-muted-foreground">
+                Gera CREATE TABLE + RLS + políticas — pronto para colar em outro Lovable Cloud / Supabase.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            <button
+              onClick={loadSql}
+              disabled={loading !== null}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              {loading === "sql" ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileCode className="h-4 w-4" />}
+              {sql ? "Regenerar" : "Gerar SQL"}
+            </button>
+            {sql && (
+              <>
+                <button
+                  onClick={copySql}
+                  className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-accent"
+                >
+                  {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                  Copiar
+                </button>
+                <button
+                  onClick={downloadSql}
+                  className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm hover:bg-accent"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar .sql
+                </button>
+              </>
+            )}
+          </div>
+          {sql && (
+            <pre className="max-h-96 overflow-auto rounded-md bg-muted p-3 text-xs font-mono whitespace-pre">
+              {sql}
+            </pre>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Auth Users */}
       <Card>
