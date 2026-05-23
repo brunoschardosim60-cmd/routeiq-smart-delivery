@@ -838,7 +838,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_get_schema_sql: { Args: never; Returns: string }
       current_company_id: { Args: never; Returns: string }
       get_driver_comprovei_credentials_decrypted: {
         Args: { p_driver_id: string; p_key: string }
