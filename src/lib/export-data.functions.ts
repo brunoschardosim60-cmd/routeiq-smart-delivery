@@ -153,3 +153,11 @@ export const exportStorage = createServerFn({ method: "POST" }).handler(async ()
     objects,
   };
 });
+
+// ─── Exportar SQL (CREATE TABLE + RLS) ─────────────────────────────────────
+export const exportSchemaSql = createServerFn({ method: "POST" }).handler(async () => {
+  const { supabaseAdmin } = await requireAdmin();
+  const { data, error } = await supabaseAdmin.rpc("admin_get_schema_sql");
+  if (error) throw new Error(error.message);
+  return { sql: (data as string) ?? "" };
+});
