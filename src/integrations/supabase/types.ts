@@ -857,6 +857,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_any_admin: { Args: never; Returns: boolean }
       is_company_admin: { Args: { _company_id: string }; Returns: boolean }
       list_active_driver_comprovei_credentials_decrypted: {
         Args: { p_key: string }
