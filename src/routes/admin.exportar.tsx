@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Database, Users, HardDrive, Download, Loader2, Info } from "lucide-react";
+import { Database, Users, HardDrive, Download, Loader2, Info, FileCode, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import {
   exportAuthUsers,
+  exportSchemaSql,
   exportStorage,
   exportTable,
   listExportResources,
