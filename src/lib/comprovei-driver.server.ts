@@ -226,10 +226,41 @@ export async function testComproveiCredentials(user: string, password: string) {
     const res = await fetch(`${eventsUrl}/events?qtd=1`, {
       headers: { Authorization: basicAuth(user, password), Accept: "application/json" },
     });
+
+    if (res.ok) {
+      return { ok: true, status: res.status, message: "Conexão válida ✅" };
+    }
+
+    // Tenta extrair a mensagem real retornada pela API do Comprovei
+    let apiMessage = "";
+    try {
+      const body = (await res.clone().json()) as { mensagem?: string; message?: string };
+      apiMessage = body?.mensagem ?? body?.message ?? "";
+    } catch {
+      try { apiMessage = (await res.text()).slice(0, 200); } catch {/* ignora */}
+    }
+
+    if (res.status === 403) {
+      return {
+        ok: false,
+        status: 403,
+        message:
+          "Acesso negado (403). Esse usuário/senha não tem a integração de eventos (WS205) liberada. " +
+          "Use o usuário e senha de INTEGRAÇÃO da API (não o login do site) ou peça à Comprovei para liberar o acesso." +
+          (apiMessage ? ` Resposta da Comprovei: "${apiMessage}".` : ""),
+      };
+    }
+    if (res.status === 401) {
+      return {
+        ok: false,
+        status: 401,
+        message: "Usuário ou senha inválidos (401). Confira as credenciais de integração do Comprovei.",
+      };
+    }
     return {
-      ok: res.ok,
+      ok: false,
       status: res.status,
-      message: res.ok ? "Conexão válida ✅" : `Falha (${res.status}) ${res.statusText}`,
+      message: `Falha (${res.status}) ${res.statusText}${apiMessage ? ` — ${apiMessage}` : ""}`,
     };
   } catch (e) {
     return { ok: false, message: e instanceof Error ? e.message : "Erro de rede" };
