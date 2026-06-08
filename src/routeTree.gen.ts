@@ -22,9 +22,7 @@ import { Route as MotoristaNotificacoesRouteImport } from './routes/motorista.no
 import { Route as MotoristaHistoricoRouteImport } from './routes/motorista.historico'
 import { Route as MotoristaFinanceiroRouteImport } from './routes/motorista.financeiro'
 import { Route as MotoristaDashboardRouteImport } from './routes/motorista.dashboard'
-import { Route as MotoristaComproveiRouteImport } from './routes/motorista.comprovei'
 import { Route as MotoristaCombustivelRouteImport } from './routes/motorista.combustivel'
-import { Route as AdminSyncLogsRouteImport } from './routes/admin.sync-logs'
 import { Route as AdminRotasRouteImport } from './routes/admin.rotas'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
 import { Route as AdminPagamentosRouteImport } from './routes/admin.pagamentos'
@@ -35,13 +33,11 @@ import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
 import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
-import { Route as AdminComproveiRouteImport } from './routes/admin.comprovei'
 import { Route as AdminCombustivelRouteImport } from './routes/admin.combustivel'
 import { Route as MotoristaRotasNovaRouteImport } from './routes/motorista.rotas.nova'
 import { Route as AdminRotasNovaRouteImport } from './routes/admin.rotas.nova'
 import { Route as AdminRotasRouteIdRouteImport } from './routes/admin.rotas.$routeId'
 import { Route as AdminMotoristasDriverIdRouteImport } from './routes/admin.motoristas.$driverId'
-import { Route as ApiPublicHooksComproveiSyncRouteImport } from './routes/api/public/hooks/comprovei-sync'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -108,20 +104,10 @@ const MotoristaDashboardRoute = MotoristaDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => MotoristaRoute,
 } as any)
-const MotoristaComproveiRoute = MotoristaComproveiRouteImport.update({
-  id: '/comprovei',
-  path: '/comprovei',
-  getParentRoute: () => MotoristaRoute,
-} as any)
 const MotoristaCombustivelRoute = MotoristaCombustivelRouteImport.update({
   id: '/combustivel',
   path: '/combustivel',
   getParentRoute: () => MotoristaRoute,
-} as any)
-const AdminSyncLogsRoute = AdminSyncLogsRouteImport.update({
-  id: '/sync-logs',
-  path: '/sync-logs',
-  getParentRoute: () => AdminRoute,
 } as any)
 const AdminRotasRoute = AdminRotasRouteImport.update({
   id: '/rotas',
@@ -173,11 +159,6 @@ const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminComproveiRoute = AdminComproveiRouteImport.update({
-  id: '/comprovei',
-  path: '/comprovei',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminCombustivelRoute = AdminCombustivelRouteImport.update({
   id: '/combustivel',
   path: '/combustivel',
@@ -203,12 +184,6 @@ const AdminMotoristasDriverIdRoute = AdminMotoristasDriverIdRouteImport.update({
   path: '/$driverId',
   getParentRoute: () => AdminMotoristasRoute,
 } as any)
-const ApiPublicHooksComproveiSyncRoute =
-  ApiPublicHooksComproveiSyncRouteImport.update({
-    id: '/api/public/hooks/comprovei-sync',
-    path: '/api/public/hooks/comprovei-sync',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -219,7 +194,6 @@ export interface FileRoutesByFullPath {
   '/motorista': typeof MotoristaRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin/combustivel': typeof AdminCombustivelRoute
-  '/admin/comprovei': typeof AdminComproveiRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
@@ -230,9 +204,7 @@ export interface FileRoutesByFullPath {
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/rotas': typeof AdminRotasRouteWithChildren
-  '/admin/sync-logs': typeof AdminSyncLogsRoute
   '/motorista/combustivel': typeof MotoristaCombustivelRoute
-  '/motorista/comprovei': typeof MotoristaComproveiRoute
   '/motorista/dashboard': typeof MotoristaDashboardRoute
   '/motorista/financeiro': typeof MotoristaFinanceiroRoute
   '/motorista/historico': typeof MotoristaHistoricoRoute
@@ -243,7 +215,6 @@ export interface FileRoutesByFullPath {
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
   '/admin/rotas/nova': typeof AdminRotasNovaRoute
   '/motorista/rotas/nova': typeof MotoristaRotasNovaRoute
-  '/api/public/hooks/comprovei-sync': typeof ApiPublicHooksComproveiSyncRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -253,7 +224,6 @@ export interface FileRoutesByTo {
   '/motorista': typeof MotoristaRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin/combustivel': typeof AdminCombustivelRoute
-  '/admin/comprovei': typeof AdminComproveiRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
@@ -264,9 +234,7 @@ export interface FileRoutesByTo {
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/rotas': typeof AdminRotasRouteWithChildren
-  '/admin/sync-logs': typeof AdminSyncLogsRoute
   '/motorista/combustivel': typeof MotoristaCombustivelRoute
-  '/motorista/comprovei': typeof MotoristaComproveiRoute
   '/motorista/dashboard': typeof MotoristaDashboardRoute
   '/motorista/financeiro': typeof MotoristaFinanceiroRoute
   '/motorista/historico': typeof MotoristaHistoricoRoute
@@ -277,7 +245,6 @@ export interface FileRoutesByTo {
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
   '/admin/rotas/nova': typeof AdminRotasNovaRoute
   '/motorista/rotas/nova': typeof MotoristaRotasNovaRoute
-  '/api/public/hooks/comprovei-sync': typeof ApiPublicHooksComproveiSyncRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -289,7 +256,6 @@ export interface FileRoutesById {
   '/motorista': typeof MotoristaRouteWithChildren
   '/reset-password': typeof ResetPasswordRoute
   '/admin/combustivel': typeof AdminCombustivelRoute
-  '/admin/comprovei': typeof AdminComproveiRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
@@ -300,9 +266,7 @@ export interface FileRoutesById {
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
   '/admin/rotas': typeof AdminRotasRouteWithChildren
-  '/admin/sync-logs': typeof AdminSyncLogsRoute
   '/motorista/combustivel': typeof MotoristaCombustivelRoute
-  '/motorista/comprovei': typeof MotoristaComproveiRoute
   '/motorista/dashboard': typeof MotoristaDashboardRoute
   '/motorista/financeiro': typeof MotoristaFinanceiroRoute
   '/motorista/historico': typeof MotoristaHistoricoRoute
@@ -313,7 +277,6 @@ export interface FileRoutesById {
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
   '/admin/rotas/nova': typeof AdminRotasNovaRoute
   '/motorista/rotas/nova': typeof MotoristaRotasNovaRoute
-  '/api/public/hooks/comprovei-sync': typeof ApiPublicHooksComproveiSyncRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -326,7 +289,6 @@ export interface FileRouteTypes {
     | '/motorista'
     | '/reset-password'
     | '/admin/combustivel'
-    | '/admin/comprovei'
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
@@ -337,9 +299,7 @@ export interface FileRouteTypes {
     | '/admin/pagamentos'
     | '/admin/relatorios'
     | '/admin/rotas'
-    | '/admin/sync-logs'
     | '/motorista/combustivel'
-    | '/motorista/comprovei'
     | '/motorista/dashboard'
     | '/motorista/financeiro'
     | '/motorista/historico'
@@ -350,7 +310,6 @@ export interface FileRouteTypes {
     | '/admin/rotas/$routeId'
     | '/admin/rotas/nova'
     | '/motorista/rotas/nova'
-    | '/api/public/hooks/comprovei-sync'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -360,7 +319,6 @@ export interface FileRouteTypes {
     | '/motorista'
     | '/reset-password'
     | '/admin/combustivel'
-    | '/admin/comprovei'
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
@@ -371,9 +329,7 @@ export interface FileRouteTypes {
     | '/admin/pagamentos'
     | '/admin/relatorios'
     | '/admin/rotas'
-    | '/admin/sync-logs'
     | '/motorista/combustivel'
-    | '/motorista/comprovei'
     | '/motorista/dashboard'
     | '/motorista/financeiro'
     | '/motorista/historico'
@@ -384,7 +340,6 @@ export interface FileRouteTypes {
     | '/admin/rotas/$routeId'
     | '/admin/rotas/nova'
     | '/motorista/rotas/nova'
-    | '/api/public/hooks/comprovei-sync'
   id:
     | '__root__'
     | '/'
@@ -395,7 +350,6 @@ export interface FileRouteTypes {
     | '/motorista'
     | '/reset-password'
     | '/admin/combustivel'
-    | '/admin/comprovei'
     | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
@@ -406,9 +360,7 @@ export interface FileRouteTypes {
     | '/admin/pagamentos'
     | '/admin/relatorios'
     | '/admin/rotas'
-    | '/admin/sync-logs'
     | '/motorista/combustivel'
-    | '/motorista/comprovei'
     | '/motorista/dashboard'
     | '/motorista/financeiro'
     | '/motorista/historico'
@@ -419,7 +371,6 @@ export interface FileRouteTypes {
     | '/admin/rotas/$routeId'
     | '/admin/rotas/nova'
     | '/motorista/rotas/nova'
-    | '/api/public/hooks/comprovei-sync'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -430,7 +381,6 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MotoristaRoute: typeof MotoristaRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
-  ApiPublicHooksComproveiSyncRoute: typeof ApiPublicHooksComproveiSyncRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -526,26 +476,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MotoristaDashboardRouteImport
       parentRoute: typeof MotoristaRoute
     }
-    '/motorista/comprovei': {
-      id: '/motorista/comprovei'
-      path: '/comprovei'
-      fullPath: '/motorista/comprovei'
-      preLoaderRoute: typeof MotoristaComproveiRouteImport
-      parentRoute: typeof MotoristaRoute
-    }
     '/motorista/combustivel': {
       id: '/motorista/combustivel'
       path: '/combustivel'
       fullPath: '/motorista/combustivel'
       preLoaderRoute: typeof MotoristaCombustivelRouteImport
       parentRoute: typeof MotoristaRoute
-    }
-    '/admin/sync-logs': {
-      id: '/admin/sync-logs'
-      path: '/sync-logs'
-      fullPath: '/admin/sync-logs'
-      preLoaderRoute: typeof AdminSyncLogsRouteImport
-      parentRoute: typeof AdminRoute
     }
     '/admin/rotas': {
       id: '/admin/rotas'
@@ -617,13 +553,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConfiguracoesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/comprovei': {
-      id: '/admin/comprovei'
-      path: '/comprovei'
-      fullPath: '/admin/comprovei'
-      preLoaderRoute: typeof AdminComproveiRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/combustivel': {
       id: '/admin/combustivel'
       path: '/combustivel'
@@ -659,13 +588,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMotoristasDriverIdRouteImport
       parentRoute: typeof AdminMotoristasRoute
     }
-    '/api/public/hooks/comprovei-sync': {
-      id: '/api/public/hooks/comprovei-sync'
-      path: '/api/public/hooks/comprovei-sync'
-      fullPath: '/api/public/hooks/comprovei-sync'
-      preLoaderRoute: typeof ApiPublicHooksComproveiSyncRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -697,7 +619,6 @@ const AdminRotasRouteWithChildren = AdminRotasRoute._addFileChildren(
 
 interface AdminRouteChildren {
   AdminCombustivelRoute: typeof AdminCombustivelRoute
-  AdminComproveiRoute: typeof AdminComproveiRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
@@ -708,13 +629,11 @@ interface AdminRouteChildren {
   AdminPagamentosRoute: typeof AdminPagamentosRoute
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
   AdminRotasRoute: typeof AdminRotasRouteWithChildren
-  AdminSyncLogsRoute: typeof AdminSyncLogsRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCombustivelRoute: AdminCombustivelRoute,
-  AdminComproveiRoute: AdminComproveiRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
@@ -725,7 +644,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminPagamentosRoute: AdminPagamentosRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,
   AdminRotasRoute: AdminRotasRouteWithChildren,
-  AdminSyncLogsRoute: AdminSyncLogsRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -745,7 +663,6 @@ const MotoristaRotasRouteWithChildren = MotoristaRotasRoute._addFileChildren(
 
 interface MotoristaRouteChildren {
   MotoristaCombustivelRoute: typeof MotoristaCombustivelRoute
-  MotoristaComproveiRoute: typeof MotoristaComproveiRoute
   MotoristaDashboardRoute: typeof MotoristaDashboardRoute
   MotoristaFinanceiroRoute: typeof MotoristaFinanceiroRoute
   MotoristaHistoricoRoute: typeof MotoristaHistoricoRoute
@@ -755,7 +672,6 @@ interface MotoristaRouteChildren {
 
 const MotoristaRouteChildren: MotoristaRouteChildren = {
   MotoristaCombustivelRoute: MotoristaCombustivelRoute,
-  MotoristaComproveiRoute: MotoristaComproveiRoute,
   MotoristaDashboardRoute: MotoristaDashboardRoute,
   MotoristaFinanceiroRoute: MotoristaFinanceiroRoute,
   MotoristaHistoricoRoute: MotoristaHistoricoRoute,
@@ -775,8 +691,17 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MotoristaRoute: MotoristaRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
-  ApiPublicHooksComproveiSyncRoute: ApiPublicHooksComproveiSyncRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
