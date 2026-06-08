@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Route as RouteIcon, DollarSign, Fuel, FileBarChart,
-  Settings, LogOut, Truck, Home, Wallet, History, Bell, Link2, Building2, ListChecks,
+  Settings, LogOut, Truck, Home, Wallet, History, Bell, Building2,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { logout, type Role } from "@/hooks/use-auth";
@@ -33,8 +33,6 @@ const adminGroups = [
       { to: "/admin/relatorios",    label: "Relatórios",         icon: FileBarChart },
       { to: "/admin/financeiro",    label: "Financeiro",          icon: DollarSign },
       { to: "/admin/empresas",      label: "Empresas",            icon: Building2 },
-      { to: "/admin/comprovei",     label: "Conexões Comprovei",  icon: Link2 },
-      { to: "/admin/sync-logs",     label: "Logs de Sync",        icon: ListChecks },
       { to: "/admin/notificacoes",  label: "Notificações",        icon: Bell },
       { to: "/admin/configuracoes", label: "Configurações",       icon: Settings },
     ],
@@ -62,7 +60,6 @@ const driverGroups = [
     label: "Sistema",
     items: [
       { to: "/motorista/notificacoes", label: "Notificações",       icon: Bell },
-      { to: "/motorista/comprovei",    label: "Conectar Comprovei", icon: Link2 },
     ],
   },
 ];

@@ -6,7 +6,7 @@ import {
   Box, CheckCircle2, Clock, AlertTriangle, Users, Route as RouteIcon,
   Gauge, Timer, RefreshCw, AlertCircle, Fuel,
 } from "lucide-react";
-import { ComproveiAlertsCard } from "@/components/ComproveiAlertsCard";
+
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
@@ -135,7 +135,7 @@ function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <ComproveiAlertsCard />
+
 
         <Card>
           <CardHeader><CardTitle className="text-base">Ranking de produtividade — Top 5</CardTitle></CardHeader>

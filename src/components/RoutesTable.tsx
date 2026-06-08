@@ -30,6 +30,7 @@ interface Props {
   showActions?: boolean;
   driverIdFilter?: string; // restringe a um motorista (motorista logado)
   showCompanyFilter?: boolean;
+  driverDetail?: boolean; // usa o link de detalhe do motorista
 }
 
 export function RoutesTable({
@@ -38,6 +39,7 @@ export function RoutesTable({
   showActions = true,
   driverIdFilter,
   showCompanyFilter = true,
+  driverDetail = false,
 }: Props) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
@@ -208,7 +210,7 @@ export function RoutesTable({
                   {showActions && (
                     <td className="py-3">
                       <Link
-                        to="/admin/rotas/$routeId"
+                        to={driverDetail ? "/motorista/rotas/$routeId" : "/admin/rotas/$routeId"}
                         params={{ routeId: r.id }}
                         className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
                       >

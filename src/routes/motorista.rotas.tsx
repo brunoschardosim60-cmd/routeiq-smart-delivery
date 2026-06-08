@@ -75,8 +75,10 @@ function MyRoutesPage() {
         rows={my}
         showDriverFilter={false}
         showCompanyFilter={false}
-        showActions={false}
+        showActions={true}
+        driverDetail
       />
+
     </div>
   );
 }
