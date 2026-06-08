@@ -1,6 +1,5 @@
 import { ThemeToggle } from "./ThemeToggle";
 import { NotificationsBell } from "./NotificationsBell";
-import { ComproveiSyncIndicator } from "./ComproveiSyncIndicator";
 import { useAuth, type Role } from "@/hooks/use-auth";
 
 export function Header({ role }: { role: Role }) {
