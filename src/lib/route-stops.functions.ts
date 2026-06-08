@@ -188,13 +188,35 @@ export const finishRoute = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ routeId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
+
+    // total de entregas = número de paradas cadastradas (calculado ao finalizar)
+    const { count: total } = await supabase
+      .from("route_stops")
+      .select("id", { count: "exact", head: true })
+      .eq("route_id", data.routeId);
+    const { count: done } = await supabase
+      .from("route_stops")
+      .select("id", { count: "exact", head: true })
+      .eq("route_id", data.routeId)
+      .eq("status", "entregue");
+
+    const now = new Date();
+    const arrival = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+
     const { error } = await supabase
       .from("assigned_routes")
-      .update({ finished_at: new Date().toISOString(), status: "concluida" })
+      .update({
+        finished_at: now.toISOString(),
+        status: "concluida",
+        expected_return: arrival,
+        total_deliveries: total ?? 0,
+        done: done ?? 0,
+      })
       .eq("id", data.routeId);
     if (error) throw new Error(error.message);
-    return { ok: true };
+    return { ok: true, total: total ?? 0, arrival };
   });
+
 
 export const updateRouteLocation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
