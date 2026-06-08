@@ -6,7 +6,7 @@ import {
   Box, CheckCircle2, Clock, AlertTriangle, Users, Route as RouteIcon,
   Gauge, Timer, RefreshCw, AlertCircle, Fuel,
 } from "lucide-react";
-import { ComproveiAlertsCard } from "@/components/ComproveiAlertsCard";
+
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from "recharts";
