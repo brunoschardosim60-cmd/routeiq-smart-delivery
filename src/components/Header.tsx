@@ -13,8 +13,8 @@ export function Header({ role }: { role: Role }) {
         <p className="text-xs text-muted-foreground">Gestão Inteligente de Entregas</p>
       </div>
       <div className="flex items-center gap-3">
-        {role === "admin" && <ComproveiSyncIndicator />}
         <NotificationsBell role={role} />
+
         <ThemeToggle />
         <div className="flex items-center gap-2 rounded-md border border-border bg-card px-2.5 py-1.5">
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
