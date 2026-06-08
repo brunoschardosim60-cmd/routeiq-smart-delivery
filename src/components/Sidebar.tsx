@@ -1,7 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, Route as RouteIcon, DollarSign, Fuel, FileBarChart,
-  Settings, LogOut, Truck, Home, Wallet, History, Bell, Link2, Building2, ListChecks,
+  Settings, LogOut, Truck, Home, Wallet, History, Bell, Building2,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
 import { logout, type Role } from "@/hooks/use-auth";
