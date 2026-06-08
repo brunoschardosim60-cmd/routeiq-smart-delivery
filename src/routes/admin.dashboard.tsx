@@ -135,7 +135,7 @@ function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <ComproveiAlertsCard />
+
 
         <Card>
           <CardHeader><CardTitle className="text-base">Ranking de produtividade — Top 5</CardTitle></CardHeader>
