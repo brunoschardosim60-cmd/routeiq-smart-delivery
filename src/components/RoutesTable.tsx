@@ -30,6 +30,7 @@ interface Props {
   showActions?: boolean;
   driverIdFilter?: string; // restringe a um motorista (motorista logado)
   showCompanyFilter?: boolean;
+  driverDetail?: boolean; // usa o link de detalhe do motorista
 }
 
 export function RoutesTable({
@@ -38,6 +39,7 @@ export function RoutesTable({
   showActions = true,
   driverIdFilter,
   showCompanyFilter = true,
+  driverDetail = false,
 }: Props) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
