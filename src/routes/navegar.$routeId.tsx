@@ -188,10 +188,15 @@ function NavigatePage() {
               </div>
             ))}
 
+            <div className="rounded-lg border border-border bg-muted/40 p-3 text-center">
+              <p className="text-xs text-muted-foreground">KM da rota (calculado pelo site)</p>
+              <p className="text-xl font-semibold">{route?.km ? `${route.km} km` : "—"}</p>
+            </div>
             <Button onClick={finish} className="w-full" variant={done === stops.length ? "default" : "outline"} disabled={finishMut.isPending}>
               {finishMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Flag className="h-4 w-4 mr-1" />}
               Finalizar rota
             </Button>
+
           </div>
         )}
       </div>
