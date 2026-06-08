@@ -60,7 +60,6 @@ const driverGroups = [
     label: "Sistema",
     items: [
       { to: "/motorista/notificacoes", label: "Notificações",       icon: Bell },
-      { to: "/motorista/comprovei",    label: "Conectar Comprovei", icon: Link2 },
     ],
   },
 ];
