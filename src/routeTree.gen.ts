@@ -35,6 +35,7 @@ import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
 import { Route as AdminCombustivelRouteImport } from './routes/admin.combustivel'
 import { Route as MotoristaRotasNovaRouteImport } from './routes/motorista.rotas.nova'
+import { Route as MotoristaRotasRouteIdRouteImport } from './routes/motorista.rotas.$routeId'
 import { Route as AdminRotasNovaRouteImport } from './routes/admin.rotas.nova'
 import { Route as AdminRotasRouteIdRouteImport } from './routes/admin.rotas.$routeId'
 import { Route as AdminMotoristasDriverIdRouteImport } from './routes/admin.motoristas.$driverId'
@@ -169,6 +170,11 @@ const MotoristaRotasNovaRoute = MotoristaRotasNovaRouteImport.update({
   path: '/nova',
   getParentRoute: () => MotoristaRotasRoute,
 } as any)
+const MotoristaRotasRouteIdRoute = MotoristaRotasRouteIdRouteImport.update({
+  id: '/$routeId',
+  path: '/$routeId',
+  getParentRoute: () => MotoristaRotasRoute,
+} as any)
 const AdminRotasNovaRoute = AdminRotasNovaRouteImport.update({
   id: '/nova',
   path: '/nova',
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
   '/admin/rotas/nova': typeof AdminRotasNovaRoute
+  '/motorista/rotas/$routeId': typeof MotoristaRotasRouteIdRoute
   '/motorista/rotas/nova': typeof MotoristaRotasNovaRoute
 }
 export interface FileRoutesByTo {
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
   '/admin/rotas/nova': typeof AdminRotasNovaRoute
+  '/motorista/rotas/$routeId': typeof MotoristaRotasRouteIdRoute
   '/motorista/rotas/nova': typeof MotoristaRotasNovaRoute
 }
 export interface FileRoutesById {
@@ -276,6 +284,7 @@ export interface FileRoutesById {
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
   '/admin/rotas/nova': typeof AdminRotasNovaRoute
+  '/motorista/rotas/$routeId': typeof MotoristaRotasRouteIdRoute
   '/motorista/rotas/nova': typeof MotoristaRotasNovaRoute
 }
 export interface FileRouteTypes {
@@ -309,6 +318,7 @@ export interface FileRouteTypes {
     | '/admin/motoristas/$driverId'
     | '/admin/rotas/$routeId'
     | '/admin/rotas/nova'
+    | '/motorista/rotas/$routeId'
     | '/motorista/rotas/nova'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -339,6 +349,7 @@ export interface FileRouteTypes {
     | '/admin/motoristas/$driverId'
     | '/admin/rotas/$routeId'
     | '/admin/rotas/nova'
+    | '/motorista/rotas/$routeId'
     | '/motorista/rotas/nova'
   id:
     | '__root__'
@@ -370,6 +381,7 @@ export interface FileRouteTypes {
     | '/admin/motoristas/$driverId'
     | '/admin/rotas/$routeId'
     | '/admin/rotas/nova'
+    | '/motorista/rotas/$routeId'
     | '/motorista/rotas/nova'
   fileRoutesById: FileRoutesById
 }
@@ -567,6 +579,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MotoristaRotasNovaRouteImport
       parentRoute: typeof MotoristaRotasRoute
     }
+    '/motorista/rotas/$routeId': {
+      id: '/motorista/rotas/$routeId'
+      path: '/$routeId'
+      fullPath: '/motorista/rotas/$routeId'
+      preLoaderRoute: typeof MotoristaRotasRouteIdRouteImport
+      parentRoute: typeof MotoristaRotasRoute
+    }
     '/admin/rotas/nova': {
       id: '/admin/rotas/nova'
       path: '/nova'
@@ -650,10 +669,12 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface MotoristaRotasRouteChildren {
+  MotoristaRotasRouteIdRoute: typeof MotoristaRotasRouteIdRoute
   MotoristaRotasNovaRoute: typeof MotoristaRotasNovaRoute
 }
 
 const MotoristaRotasRouteChildren: MotoristaRotasRouteChildren = {
+  MotoristaRotasRouteIdRoute: MotoristaRotasRouteIdRoute,
   MotoristaRotasNovaRoute: MotoristaRotasNovaRoute,
 }
 
@@ -695,3 +716,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
