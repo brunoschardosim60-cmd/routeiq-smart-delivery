@@ -33,8 +33,6 @@ const adminGroups = [
       { to: "/admin/relatorios",    label: "Relatórios",         icon: FileBarChart },
       { to: "/admin/financeiro",    label: "Financeiro",          icon: DollarSign },
       { to: "/admin/empresas",      label: "Empresas",            icon: Building2 },
-      { to: "/admin/comprovei",     label: "Conexões Comprovei",  icon: Link2 },
-      { to: "/admin/sync-logs",     label: "Logs de Sync",        icon: ListChecks },
       { to: "/admin/notificacoes",  label: "Notificações",        icon: Bell },
       { to: "/admin/configuracoes", label: "Configurações",       icon: Settings },
     ],
