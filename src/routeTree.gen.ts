@@ -17,6 +17,7 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as NavegarRouteIdRouteImport } from './routes/navegar.$routeId'
 import { Route as MotoristaRotasRouteImport } from './routes/motorista.rotas'
 import { Route as MotoristaNotificacoesRouteImport } from './routes/motorista.notificacoes'
 import { Route as MotoristaHistoricoRouteImport } from './routes/motorista.historico'
@@ -79,6 +80,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const NavegarRouteIdRoute = NavegarRouteIdRouteImport.update({
+  id: '/navegar/$routeId',
+  path: '/navegar/$routeId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MotoristaRotasRoute = MotoristaRotasRouteImport.update({
   id: '/rotas',
@@ -216,6 +222,7 @@ export interface FileRoutesByFullPath {
   '/motorista/historico': typeof MotoristaHistoricoRoute
   '/motorista/notificacoes': typeof MotoristaNotificacoesRoute
   '/motorista/rotas': typeof MotoristaRotasRouteWithChildren
+  '/navegar/$routeId': typeof NavegarRouteIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
@@ -247,6 +254,7 @@ export interface FileRoutesByTo {
   '/motorista/historico': typeof MotoristaHistoricoRoute
   '/motorista/notificacoes': typeof MotoristaNotificacoesRoute
   '/motorista/rotas': typeof MotoristaRotasRouteWithChildren
+  '/navegar/$routeId': typeof NavegarRouteIdRoute
   '/admin': typeof AdminIndexRoute
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/motorista/historico': typeof MotoristaHistoricoRoute
   '/motorista/notificacoes': typeof MotoristaNotificacoesRoute
   '/motorista/rotas': typeof MotoristaRotasRouteWithChildren
+  '/navegar/$routeId': typeof NavegarRouteIdRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/motoristas/$driverId': typeof AdminMotoristasDriverIdRoute
   '/admin/rotas/$routeId': typeof AdminRotasRouteIdRoute
@@ -314,6 +323,7 @@ export interface FileRouteTypes {
     | '/motorista/historico'
     | '/motorista/notificacoes'
     | '/motorista/rotas'
+    | '/navegar/$routeId'
     | '/admin/'
     | '/admin/motoristas/$driverId'
     | '/admin/rotas/$routeId'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/motorista/historico'
     | '/motorista/notificacoes'
     | '/motorista/rotas'
+    | '/navegar/$routeId'
     | '/admin'
     | '/admin/motoristas/$driverId'
     | '/admin/rotas/$routeId'
@@ -377,6 +388,7 @@ export interface FileRouteTypes {
     | '/motorista/historico'
     | '/motorista/notificacoes'
     | '/motorista/rotas'
+    | '/navegar/$routeId'
     | '/admin/'
     | '/admin/motoristas/$driverId'
     | '/admin/rotas/$routeId'
@@ -393,6 +405,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MotoristaRoute: typeof MotoristaRouteWithChildren
   ResetPasswordRoute: typeof ResetPasswordRoute
+  NavegarRouteIdRoute: typeof NavegarRouteIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -452,6 +465,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/navegar/$routeId': {
+      id: '/navegar/$routeId'
+      path: '/navegar/$routeId'
+      fullPath: '/navegar/$routeId'
+      preLoaderRoute: typeof NavegarRouteIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/motorista/rotas': {
       id: '/motorista/rotas'
@@ -712,6 +732,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MotoristaRoute: MotoristaRouteWithChildren,
   ResetPasswordRoute: ResetPasswordRoute,
+  NavegarRouteIdRoute: NavegarRouteIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
