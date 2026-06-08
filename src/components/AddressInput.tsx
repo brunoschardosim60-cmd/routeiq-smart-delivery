@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { suggestAddresses, type AddressSuggestion } from "./geo.functions";
+import { suggestAddresses, type AddressSuggestion } from "@/lib/geo.functions";
 import { MapPin, Loader2 } from "lucide-react";
 
 interface AddressInputProps {
