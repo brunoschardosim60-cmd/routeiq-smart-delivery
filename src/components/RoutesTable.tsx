@@ -208,7 +208,7 @@ export function RoutesTable({
                   {showActions && (
                     <td className="py-3">
                       <Link
-                        to="/admin/rotas/$routeId"
+                        to={driverDetail ? "/motorista/rotas/$routeId" : "/admin/rotas/$routeId"}
                         params={{ routeId: r.id }}
                         className="inline-flex items-center gap-1 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent"
                       >
