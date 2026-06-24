@@ -28,13 +28,15 @@ const STATUS_COLOR: Record<string, string> = {
   pendente: "#2563eb",
 };
 
-export function RouteMap({ stops, driver, className, drawRoute }: RouteMapProps) {
+export function RouteMap({ stops, driver, className, drawRoute, onRecenterReady }: RouteMapProps) {
   const { ready, error } = useGoogleMaps();
   const divRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const driverMarkerRef = useRef<any>(null);
   const rendererRef = useRef<any>(null);
+  const driverRef = useRef(driver);
+  driverRef.current = driver;
 
   // init map
   useEffect(() => {
@@ -48,7 +50,14 @@ export function RouteMap({ stops, driver, className, drawRoute }: RouteMapProps)
       mapTypeControl: false,
       fullscreenControl: false,
     });
-  }, [ready]);
+    onRecenterReady?.(() => {
+      const d = driverRef.current;
+      if (d && mapRef.current) {
+        mapRef.current.panTo({ lat: d.lat, lng: d.lon });
+        mapRef.current.setZoom(15);
+      }
+    });
+  }, [ready, onRecenterReady]);
 
   // markers + bounds
   useEffect(() => {
