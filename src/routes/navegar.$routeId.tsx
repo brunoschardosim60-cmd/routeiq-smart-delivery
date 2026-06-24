@@ -81,6 +81,20 @@ function NavigatePage() {
   }));
   const done = stops.filter((s) => s.status === "entregue").length;
   const next = stops.find((s) => s.status === "pendente");
+  const progress = stops.length ? Math.round((done / stops.length) * 100) : 0;
+  const allDone = stops.length > 0 && done === stops.length;
+
+  const distToNext = useMemo(() => {
+    if (!driver || !next?.lat || !next.lon) return null;
+    const R = 6371;
+    const dLat = ((next.lat - driver.lat) * Math.PI) / 180;
+    const dLon = ((next.lon - driver.lon) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((driver.lat * Math.PI) / 180) * Math.cos((next.lat * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+  }, [driver, next]);
 
   const mark = (id: string, status: "entregue" | "falha") => {
     statusMut.mutate({ id, status }, {
