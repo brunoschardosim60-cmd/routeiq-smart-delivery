@@ -18,6 +18,8 @@ interface RouteMapProps {
   className?: string;
   /** desenha rota otimizada passando por todas as paradas a partir do motorista */
   drawRoute?: boolean;
+  /** recebe uma função para recentralizar o mapa na localização do motorista */
+  onRecenterReady?: (fn: () => void) => void;
 }
 
 const STATUS_COLOR: Record<string, string> = {
