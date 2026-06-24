@@ -12,7 +12,7 @@ import {
 } from "@/lib/route-stops";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  X, Navigation, CheckCircle2, XCircle, ChevronUp, ChevronDown, MapPin, Flag, Loader2,
+  X, Navigation, CheckCircle2, XCircle, ChevronUp, ChevronDown, MapPin, Flag, Loader2, Crosshair,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -37,6 +37,7 @@ function NavigatePage() {
   const [expanded, setExpanded] = useState(true);
   const startedRef = useRef(false);
   const lastPushRef = useRef(0);
+  const recenterRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate({ to: "/login" });
@@ -80,6 +81,20 @@ function NavigatePage() {
   }));
   const done = stops.filter((s) => s.status === "entregue").length;
   const next = stops.find((s) => s.status === "pendente");
+  const progress = stops.length ? Math.round((done / stops.length) * 100) : 0;
+  const allDone = stops.length > 0 && done === stops.length;
+
+  const distToNext = useMemo(() => {
+    if (!driver || !next?.lat || !next.lon) return null;
+    const R = 6371;
+    const dLat = ((next.lat - driver.lat) * Math.PI) / 180;
+    const dLon = ((next.lon - driver.lon) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos((driver.lat * Math.PI) / 180) * Math.cos((next.lat * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    const km = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return km < 1 ? `${Math.round(km * 1000)} m` : `${km.toFixed(1)} km`;
+  }, [driver, next]);
 
   const mark = (id: string, status: "entregue" | "falha") => {
     statusMut.mutate({ id, status }, {
@@ -111,23 +126,43 @@ function NavigatePage() {
         >
           <X className="h-5 w-5" />
         </button>
-        <div className="min-w-0 text-center">
+        <div className="min-w-0 flex-1 text-center">
           <p className="text-sm font-semibold truncate">Rota {route?.code ?? ""}</p>
-          <p className="text-xs text-muted-foreground">{done}/{stops.length} entregas concluídas</p>
+          <p className="text-xs text-muted-foreground">{done}/{stops.length} entregas · {progress}%</p>
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+          </div>
         </div>
         <div className="h-9 w-9" />
       </div>
 
       {/* mapa */}
       <div className="relative flex-1">
-        <RouteMap stops={mapStops} driver={driver} drawRoute className="h-full w-full" />
+        <RouteMap
+          stops={mapStops}
+          driver={driver}
+          drawRoute
+          className="h-full w-full"
+          onRecenterReady={(fn) => (recenterRef.current = fn)}
+        />
+
+        {/* botão recentralizar */}
+        <button
+          onClick={() => recenterRef.current?.()}
+          className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/95 shadow-lg backdrop-blur hover:bg-accent"
+          title="Centralizar na minha localização"
+        >
+          <Crosshair className="h-5 w-5" />
+        </button>
 
         {/* card próxima entrega */}
         {next && (
           <div className="absolute left-3 right-3 top-3 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Próxima entrega · {next.seq}</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Próxima entrega · {next.seq}{distToNext ? ` · ${distToNext}` : ""}
+                </p>
                 <p className="text-sm font-semibold truncate">{next.client_name ?? "Entrega"}</p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <MapPin className="h-3 w-3 shrink-0" /> {next.address}
@@ -142,6 +177,7 @@ function NavigatePage() {
           </div>
         )}
       </div>
+
 
       {/* painel inferior de entregas */}
       <div className="border-t border-border bg-card">
@@ -192,10 +228,11 @@ function NavigatePage() {
               <p className="text-xs text-muted-foreground">KM da rota (calculado pelo site)</p>
               <p className="text-xl font-semibold">{route?.km ? `${route.km} km` : "—"}</p>
             </div>
-            <Button onClick={finish} className="w-full" variant={done === stops.length ? "default" : "outline"} disabled={finishMut.isPending}>
+            <Button onClick={finish} className="w-full" variant={allDone ? "default" : "outline"} disabled={finishMut.isPending}>
               {finishMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Flag className="h-4 w-4 mr-1" />}
-              Finalizar rota
+              {allDone ? "Finalizar rota" : `Finalizar (${stops.length - done} pendente${stops.length - done > 1 ? "s" : ""})`}
             </Button>
+
 
           </div>
         )}
