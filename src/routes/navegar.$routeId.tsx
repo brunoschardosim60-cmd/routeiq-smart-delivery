@@ -126,23 +126,43 @@ function NavigatePage() {
         >
           <X className="h-5 w-5" />
         </button>
-        <div className="min-w-0 text-center">
+        <div className="min-w-0 flex-1 text-center">
           <p className="text-sm font-semibold truncate">Rota {route?.code ?? ""}</p>
-          <p className="text-xs text-muted-foreground">{done}/{stops.length} entregas concluídas</p>
+          <p className="text-xs text-muted-foreground">{done}/{stops.length} entregas · {progress}%</p>
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${progress}%` }} />
+          </div>
         </div>
         <div className="h-9 w-9" />
       </div>
 
       {/* mapa */}
       <div className="relative flex-1">
-        <RouteMap stops={mapStops} driver={driver} drawRoute className="h-full w-full" />
+        <RouteMap
+          stops={mapStops}
+          driver={driver}
+          drawRoute
+          className="h-full w-full"
+          onRecenterReady={(fn) => (recenterRef.current = fn)}
+        />
+
+        {/* botão recentralizar */}
+        <button
+          onClick={() => recenterRef.current?.()}
+          className="absolute bottom-4 right-4 flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/95 shadow-lg backdrop-blur hover:bg-accent"
+          title="Centralizar na minha localização"
+        >
+          <Crosshair className="h-5 w-5" />
+        </button>
 
         {/* card próxima entrega */}
         {next && (
           <div className="absolute left-3 right-3 top-3 rounded-xl border border-border bg-card/95 p-3 shadow-lg backdrop-blur">
             <div className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Próxima entrega · {next.seq}</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Próxima entrega · {next.seq}{distToNext ? ` · ${distToNext}` : ""}
+                </p>
                 <p className="text-sm font-semibold truncate">{next.client_name ?? "Entrega"}</p>
                 <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
                   <MapPin className="h-3 w-3 shrink-0" /> {next.address}
@@ -157,6 +177,7 @@ function NavigatePage() {
           </div>
         )}
       </div>
+
 
       {/* painel inferior de entregas */}
       <div className="border-t border-border bg-card">
