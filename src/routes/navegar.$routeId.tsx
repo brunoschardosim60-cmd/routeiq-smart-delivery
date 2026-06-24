@@ -12,7 +12,7 @@ import {
 } from "@/lib/route-stops";
 import { useAuth } from "@/hooks/use-auth";
 import {
-  X, Navigation, CheckCircle2, XCircle, ChevronUp, ChevronDown, MapPin, Flag, Loader2,
+  X, Navigation, CheckCircle2, XCircle, ChevronUp, ChevronDown, MapPin, Flag, Loader2, Crosshair,
 } from "lucide-react";
 import { toast } from "sonner";
 
