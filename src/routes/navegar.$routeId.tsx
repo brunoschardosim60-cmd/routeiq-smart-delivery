@@ -37,6 +37,7 @@ function NavigatePage() {
   const [expanded, setExpanded] = useState(true);
   const startedRef = useRef(false);
   const lastPushRef = useRef(0);
+  const recenterRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) navigate({ to: "/login" });
