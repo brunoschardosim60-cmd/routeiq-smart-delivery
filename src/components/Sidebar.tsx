@@ -134,8 +134,7 @@ export function Sidebar({ role }: { role: Role }) {
   const groups = role === "admin" ? adminGroups : driverGroups;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const [companyScope] = useCurrentCompany();
-  const company = companyScope ? { name: companyScope === "todas" ? "Todas" : companyScope } : null;
+  const { company } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
