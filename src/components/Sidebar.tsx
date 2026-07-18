@@ -31,6 +31,7 @@ const adminGroups = [
     items: [
       { to: "/admin/relatorios",    label: "Relatórios",         icon: FileBarChart },
       { to: "/admin/financeiro",    label: "Financeiro",          icon: DollarSign },
+      { to: "/admin/notas",         label: "Caderno",             icon: FileBarChart },
       { to: "/admin/empresas",      label: "Empresas",            icon: Building2 },
       { to: "/admin/notificacoes",  label: "Notificações",        icon: Bell },
       { to: "/admin/configuracoes", label: "Configurações",       icon: Settings },
