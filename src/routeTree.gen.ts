@@ -28,6 +28,7 @@ import { Route as AdminRotasRouteImport } from './routes/admin.rotas'
 import { Route as AdminRelatoriosRouteImport } from './routes/admin.relatorios'
 import { Route as AdminPagamentosRouteImport } from './routes/admin.pagamentos'
 import { Route as AdminNotificacoesRouteImport } from './routes/admin.notificacoes'
+import { Route as AdminNotasRouteImport } from './routes/admin.notas'
 import { Route as AdminMotoristasRouteImport } from './routes/admin.motoristas'
 import { Route as AdminMetasRouteImport } from './routes/admin.metas'
 import { Route as AdminFinanceiroRouteImport } from './routes/admin.financeiro'
@@ -136,6 +137,11 @@ const AdminNotificacoesRoute = AdminNotificacoesRouteImport.update({
   path: '/notificacoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminNotasRoute = AdminNotasRouteImport.update({
+  id: '/notas',
+  path: '/notas',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMotoristasRoute = AdminMotoristasRouteImport.update({
   id: '/motoristas',
   path: '/motoristas',
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
+  '/admin/notas': typeof AdminNotasRoute
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -244,6 +251,7 @@ export interface FileRoutesByTo {
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
+  '/admin/notas': typeof AdminNotasRoute
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -278,6 +286,7 @@ export interface FileRoutesById {
   '/admin/financeiro': typeof AdminFinanceiroRoute
   '/admin/metas': typeof AdminMetasRoute
   '/admin/motoristas': typeof AdminMotoristasRouteWithChildren
+  '/admin/notas': typeof AdminNotasRoute
   '/admin/notificacoes': typeof AdminNotificacoesRoute
   '/admin/pagamentos': typeof AdminPagamentosRoute
   '/admin/relatorios': typeof AdminRelatoriosRoute
@@ -313,6 +322,7 @@ export interface FileRouteTypes {
     | '/admin/financeiro'
     | '/admin/metas'
     | '/admin/motoristas'
+    | '/admin/notas'
     | '/admin/notificacoes'
     | '/admin/pagamentos'
     | '/admin/relatorios'
@@ -345,6 +355,7 @@ export interface FileRouteTypes {
     | '/admin/financeiro'
     | '/admin/metas'
     | '/admin/motoristas'
+    | '/admin/notas'
     | '/admin/notificacoes'
     | '/admin/pagamentos'
     | '/admin/relatorios'
@@ -378,6 +389,7 @@ export interface FileRouteTypes {
     | '/admin/financeiro'
     | '/admin/metas'
     | '/admin/motoristas'
+    | '/admin/notas'
     | '/admin/notificacoes'
     | '/admin/pagamentos'
     | '/admin/relatorios'
@@ -543,6 +555,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminNotificacoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/notas': {
+      id: '/admin/notas'
+      path: '/notas'
+      fullPath: '/admin/notas'
+      preLoaderRoute: typeof AdminNotasRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/motoristas': {
       id: '/admin/motoristas'
       path: '/motoristas'
@@ -664,6 +683,7 @@ interface AdminRouteChildren {
   AdminFinanceiroRoute: typeof AdminFinanceiroRoute
   AdminMetasRoute: typeof AdminMetasRoute
   AdminMotoristasRoute: typeof AdminMotoristasRouteWithChildren
+  AdminNotasRoute: typeof AdminNotasRoute
   AdminNotificacoesRoute: typeof AdminNotificacoesRoute
   AdminPagamentosRoute: typeof AdminPagamentosRoute
   AdminRelatoriosRoute: typeof AdminRelatoriosRoute
@@ -679,6 +699,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFinanceiroRoute: AdminFinanceiroRoute,
   AdminMetasRoute: AdminMetasRoute,
   AdminMotoristasRoute: AdminMotoristasRouteWithChildren,
+  AdminNotasRoute: AdminNotasRoute,
   AdminNotificacoesRoute: AdminNotificacoesRoute,
   AdminPagamentosRoute: AdminPagamentosRoute,
   AdminRelatoriosRoute: AdminRelatoriosRoute,
