@@ -4,10 +4,9 @@ import {
   Settings, LogOut, Truck, Home, Wallet, History, Bell, Building2,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
-import { logout, type Role } from "@/hooks/use-auth";
+import { logout, useAuth, type Role } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { useCurrentCompany } from "@/lib/current-company";
 
 // ─── Itens admin agrupados ────────────────────────────────────────────────────
 const adminGroups = [
