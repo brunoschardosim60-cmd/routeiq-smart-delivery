@@ -4,10 +4,9 @@ import {
   Settings, LogOut, Truck, Home, Wallet, History, Bell, Building2,
   ChevronDown, ChevronRight, PanelLeftClose, PanelLeftOpen,
 } from "lucide-react";
-import { logout, type Role } from "@/hooks/use-auth";
+import { logout, useAuth, type Role } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { useCurrentCompany } from "@/lib/current-company";
 
 // ─── Itens admin agrupados ────────────────────────────────────────────────────
 const adminGroups = [
@@ -32,6 +31,7 @@ const adminGroups = [
     items: [
       { to: "/admin/relatorios",    label: "Relatórios",         icon: FileBarChart },
       { to: "/admin/financeiro",    label: "Financeiro",          icon: DollarSign },
+      { to: "/admin/notas",         label: "Caderno",             icon: FileBarChart },
       { to: "/admin/empresas",      label: "Empresas",            icon: Building2 },
       { to: "/admin/notificacoes",  label: "Notificações",        icon: Bell },
       { to: "/admin/configuracoes", label: "Configurações",       icon: Settings },
@@ -134,8 +134,7 @@ export function Sidebar({ role }: { role: Role }) {
   const groups = role === "admin" ? adminGroups : driverGroups;
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const [companyScope] = useCurrentCompany();
-  const company = companyScope ? { name: companyScope === "todas" ? "Todas" : companyScope } : null;
+  const { company } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {

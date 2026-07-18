@@ -1,55 +1,90 @@
-## Plano — sincronização real + relatórios CSV
 
-### Parte 1 — Migrar rotas e abastecimentos para o banco
+Plano priorizado seguindo suas respostas. Faço as 4 fases em sequência, mas paro pra você conferir depois de cada uma se quiser.
 
-Hoje `assigned-routes` e `combustivel` salvam só em `localStorage`. Vou criar duas tabelas com RLS por empresa para que admin enxerga tudo da empresa e motorista enxerga só o dele, em qualquer dispositivo.
+## Fase 1 — Isolamento de empresa + mapa (o que mais te incomoda)
 
-**Migração (tabelas + RLS):**
+**Bugs encontrados pela investigação:**
+- A Sidebar mostra "DBM"/"BS Soluções" de um mock em `sessionStorage` (`src/lib/current-company.ts`), enquanto o Header mostra o nome real do banco. Por isso o nome fica diferente.
+- No `login.tsx` linhas 25-29, um `if (slug.includes("bs"))` força toda empresa que não tem "bs" no slug pra virar "DBM" na tela — bug real.
+- `src/lib/routes-db.ts:26` e `src/lib/company-members.ts:28` **hardcodam `company: "BS"`** em toda linha vinda do banco, então rotas/motoristas de qualquer empresa aparecem como "BS" na UI. É isso que dá a sensação de "dados de outras empresas".
+- `admin.motoristas.tsx` mistura 3 fontes: motoristas reais do Supabase + extras do localStorage + motoristas mock estáticos. Junto com o hardcode acima, aparece gente que não é da empresa.
+- `admin.motoristas.$driverId.tsx` é 100% mock — clicar num motorista real mostra dados de outra pessoa.
+- Google Maps: chave direta com restrição de referrer bloqueia silenciosamente (Promise nunca resolve, sem erro visível). Vou trocar pelo connector Lovable de Google Maps (chave gerenciada, funciona no preview) e adicionar mensagem clara quando falhar.
 
-```text
-assigned_routes
-  - company_id, driver_id (uuid auth), driver_name
-  - code, date_iso, departure, expected_return
-  - origin, destination, total_deliveries, done
-  - km, km_start, km_end, cost, revenue, status, notes
+**Correções:**
+1. Sidebar lê `useAuth().company.name` em vez do mock. Remover `CompanySwitcher` do Header (é mock DBM/BS que não faz sentido no app real).
+2. Remover `sessionStorage` mock (`current-company.ts`) e o hack de slug no `login.tsx`.
+3. `rowToRouteRow` e `toDriver` deixam de forçar `"BS"` — derivam de `company_id` real da linha (ou omitem o campo, já que a query já é filtrada por empresa no servidor).
+4. `admin.motoristas.tsx` passa a listar só motoristas reais (`useCompanyDrivers` puro), sem mesclar mock/extras.
+5. `admin.motoristas.$driverId.tsx` busca perfil real do Supabase por `driver_id`, com estados de loading/404.
+6. Google Maps via connector Lovable (`VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`). Se `ready` não virar `true` em ~8s, mostra card "Não foi possível carregar o mapa — verifique a chave/restrições" com botão de tentar novamente.
 
-fuel_entries
-  - company_id, driver_id (uuid auth), driver_name
-  - date_iso, vehicle, plate, liters, price_per_l, total
-  - odometer, station, notes
+## Fase 2 — Motorista mais simples (cadastro + home)
+
+**Cadastro em 1 tela só, criando conta real:**
+- `AddDriverModal` hoje só grava em `localStorage` (via `extra-drivers`), não cria login real. Vou trocar por uma server function que:
+  - Cria o `auth.users` (admin API), já com senha temporária.
+  - Insere `profiles` com `company_id` do admin logado.
+  - Insere `user_roles` com role `motorista`.
+  - Insere `driver_profiles` (veículo, placa, diária, 2ª saída).
+- Um modal, um botão "Cadastrar", devolve a senha temporária pro admin copiar/mostrar ao motorista.
+- Remove a lista `mock-data` e `extra-drivers` da tela (só motoristas reais).
+
+**Home do motorista = rota do dia + mapa:**
+- Cria `src/routes/motorista.index.tsx` que redireciona `/motorista` → `/motorista/hoje` (nova tela).
+- `/motorista/hoje` mostra: a rota atribuída para hoje (pega da `assigned_routes` filtrando `date = today`), mapa grande com as paradas geocodificadas, botão grande "Começar rota" (leva pra `/navegar/$routeId` que já existe). Se não há rota hoje: card "Sem rota hoje — ver próximas" com link.
+- Ajusta login pra mandar motorista pra `/motorista/hoje` em vez de `/motorista/dashboard`.
+- Reorganiza Sidebar do motorista: "Hoje" em cima; Dashboard, Rotas, Histórico, Financeiro, Combustível ficam abaixo (sem remover, como você pediu).
+
+## Fase 3 — Caderno de anotações do admin (compartilhado por empresa)
+
+**Banco (nova migration):**
+```sql
+CREATE TABLE public.company_notes (
+  id uuid PK,
+  company_id uuid NOT NULL REFERENCES companies,
+  author_id uuid REFERENCES auth.users,
+  title text,
+  body text,
+  color text DEFAULT 'yellow',   -- amarelo/azul/verde/rosa (pré-definidos)
+  pinned boolean DEFAULT false,
+  created_at, updated_at
+);
+-- GRANTs pra authenticated + service_role
+-- RLS: SELECT/INSERT/UPDATE/DELETE se is_company_admin(company_id)
+-- trigger updated_at
 ```
 
-RLS:
-- motorista: SELECT/INSERT/UPDATE/DELETE só onde `driver_id = auth.uid()`
-- admin/owner da empresa: SELECT/UPDATE/DELETE em tudo da `company_id` (via `is_company_admin`)
-- INSERT do admin: pode criar rota atribuindo a qualquer motorista da empresa
+**UI:** Nova rota `/admin/caderno` com:
+- Grid de post-its (cor selecionável), pin/unpin, editar inline, deletar.
+- Ordena pinned no topo + por `updated_at`.
+- Item na Sidebar do admin: "Caderno".
+- Persistência via server functions com `requireSupabaseAuth`.
 
-**Server functions** (`src/lib/routes-db.functions.ts`, `src/lib/fuel-db.functions.ts`):
-- `listMyRoutes()` / `listCompanyRoutes()` / `createAssignedRoute()` / `updateRouteStatus()` / `deleteRoute()`
-- `listMyFuel()` / `listCompanyFuel()` / `createFuelEntry()` / `deleteFuelEntry()`
+## Fase 4 — Enxugar UI + delays + mapa arrastável
 
-**Telas afetadas** — trocar leitura/escrita de localStorage para as server fns:
-- `motorista.rotas.tsx`, `motorista.rotas.nova.tsx`, `motorista.combustivel.tsx`
-- `admin.rotas.tsx`, `admin.rotas.nova.tsx`, `admin.combustivel.tsx`, `admin.financeiro.tsx`, `admin.dashboard.tsx`
+**Delays (as respostas indicam frustração real):**
+- `src/router.tsx` — mudar `defaultPreloadStaleTime: 0` pra `defaultPreloadStaleTime: 30_000` (respeita cache no preload em hover).
+- Adicionar `preload: "intent"` nos `Link`s da Sidebar (hover pré-carrega a rota).
+- `useAuth` — permitir render otimista da UI logada enquanto contexto (roles/company) ainda carrega, em vez de bloquear tudo com spinner por 2 requests em cascata.
 
-`localStorage` continua só como fallback para dados mock antigos (drivers seed).
+**Mapa que "flui entre telas" (sua resposta):**
+- Componente `<FloatingMapPanel />` global (persistido no `AppShell`), renderiza uma janela redimensionável + arrastável (headless-ui / dnd simples) que mantém o mesmo `RouteMap` montado ao trocar de tela. Estado (posição, tamanho, minimizado) em `localStorage`.
+- Botão flutuante no canto: minimizar/maximizar/fechar. Modo "tela cheia" abre `/navegar/$routeId`.
+- Nas telas de detalhe da rota, o mapa embutido é substituído por um botão "Abrir mapa" que abre o painel flutuante focado naquela rota — evita duplicar instâncias do Google Maps (custa quota + é lento).
 
-### Parte 2 — Relatórios em CSV
+**Sidebar:** Mantém todos os itens (você pediu pra não remover), mas agrupa visualmente em seções ("Operação", "Gestão", "Conta") com separadores — reduz poluição sem cortar nada.
 
-Em `admin.relatorios.tsx`, habilitar "Exportar CSV" para os relatórios que dependem de dados reais agora disponíveis no banco:
-- **Entregas/rotas por período** — `assigned_routes` filtrado por data + motorista
-- **Custos operacionais** — soma de `fuel_entries.total` + `assigned_routes.cost` por período
-- **Combustível** — `fuel_entries` por veículo/motorista
-- **KM por veículo** — agregado de `fuel_entries.odometer` + `assigned_routes.km`
-- **Lucro por rota** — `revenue - cost` por linha de `assigned_routes`
+---
 
-CSV gerado client-side via `Blob` + download direto (sem dependência nova). Filtros de período, motorista e veículo já existem no painel — só vou ligar ao botão.
+## Ordem de entrega
 
-### Ordem de execução
+Faço Fase 1 primeiro e paro pra você validar (nome empresa certo, sem leak, mapa carregando). Depois Fase 2, 3, 4 na sequência. Total estimado: ~4 rodadas grandes de edição.
 
-1. Migração SQL (tabelas + RLS) — pedir aprovação.
-2. Server functions de rotas e combustível.
-3. Refatorar telas para usar as fns (mantendo UX atual).
-4. Implementar geração de CSV no `admin.relatorios.tsx`.
+## Detalhes técnicos (referência interna)
 
-Confirma para eu rodar a migração?
+- Migration única no início da Fase 3 pra `company_notes`.
+- Nenhuma mudança em RLS de `assigned_routes` (já está correta, era bug de UI).
+- Server functions novas: `admin-create-driver.functions.ts`, `company-notes.functions.ts`.
+- Deletar: `src/lib/current-company.ts`, `src/lib/extra-drivers.ts`, `src/components/CompanySwitcher.tsx`, mocks de driver em `mock-data.ts` (mantém tipos).
+- Google Maps: conectar via `standard_connectors--connect` (google_maps) e trocar `use-google-maps.ts` pra ler `VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY`. Sua chave manual atual fica como fallback.
